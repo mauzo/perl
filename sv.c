@@ -12029,6 +12029,7 @@ perl_clone_using(PerlInterpreter *proto_perl, UV flags,
     PL_checkav_save	= av_dup_inc(proto_perl->Icheckav_save, param);
     PL_unitcheckav      = av_dup_inc(proto_perl->Iunitcheckav, param);
     PL_unitcheckav_save = av_dup_inc(proto_perl->Iunitcheckav_save, param);
+    PL_padblkav		= av_dup_inc(proto_perl->Ipadblkav, param);
     PL_endav		= av_dup_inc(proto_perl->Iendav, param);
     PL_checkav		= av_dup_inc(proto_perl->Icheckav, param);
     PL_initav		= av_dup_inc(proto_perl->Iinitav, param);

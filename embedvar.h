@@ -225,6 +225,7 @@
 #define PL_ors_sv		(vTHX->Iors_sv)
 #define PL_osname		(vTHX->Iosname)
 #define PL_pad_reset_pending	(vTHX->Ipad_reset_pending)
+#define PL_padblkav		(vTHX->Ipadblkav)
 #define PL_padix		(vTHX->Ipadix)
 #define PL_padix_floor		(vTHX->Ipadix_floor)
 #define PL_parser		(vTHX->Iparser)
@@ -538,6 +539,7 @@
 #define PL_Iors_sv		PL_ors_sv
 #define PL_Iosname		PL_osname
 #define PL_Ipad_reset_pending	PL_pad_reset_pending
+#define PL_Ipadblkav		PL_padblkav
 #define PL_Ipadix		PL_padix
 #define PL_Ipadix_floor		PL_padix_floor
 #define PL_Iparser		PL_parser

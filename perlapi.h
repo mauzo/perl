@@ -486,6 +486,8 @@ END_EXTERN_C
 #define PL_osname		(*Perl_Iosname_ptr(aTHX))
 #undef  PL_pad_reset_pending
 #define PL_pad_reset_pending	(*Perl_Ipad_reset_pending_ptr(aTHX))
+#undef  PL_padblkav
+#define PL_padblkav		(*Perl_Ipadblkav_ptr(aTHX))
 #undef  PL_padix
 #define PL_padix		(*Perl_Ipadix_ptr(aTHX))
 #undef  PL_padix_floor

@@ -326,6 +326,7 @@ PERLVAR(Iglobalstash,	HV *)		/* global keyword overrides imported here */
 PERLVAR(Icurstname,	SV *)		/* name of current package */
 PERLVAR(Ibeginav,	AV *)		/* names of BEGIN subroutines */
 PERLVAR(Iendav,		AV *)		/* names of END subroutines */
+PERLVAR(Ipadblkav,      AV *)           /* names of pad block subroutines */
 PERLVAR(Iunitcheckav,	AV *)		/* names of UNITCHECK subroutines */
 PERLVAR(Icheckav,	AV *)		/* names of CHECK subroutines */
 PERLVAR(Iinitav,	AV *)		/* names of INIT subroutines */
