@@ -397,6 +397,7 @@ EXTCONST char* const PL_op_name[] = {
 	"syscall",
 	"lock",
 	"once",
+	"padblk",
 	"custom",
 };
 #endif
@@ -769,6 +770,7 @@ EXTCONST char* const PL_op_desc[] = {
 	"syscall",
 	"lock",
 	"once",
+	"padblk",
 	"unknown custom operator",
 };
 #endif
@@ -1155,6 +1157,7 @@ EXT Perl_ppaddr_t PL_ppaddr[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_pp_syscall),
 	MEMBER_TO_FPTR(Perl_pp_lock),
 	MEMBER_TO_FPTR(Perl_pp_once),
+	MEMBER_TO_FPTR(Perl_pp_padblk),
 	MEMBER_TO_FPTR(Perl_unimplemented_op),	/* Perl_pp_custom */
 }
 #endif
@@ -1538,6 +1541,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* syscall */
 	MEMBER_TO_FPTR(Perl_ck_rfun),	/* lock */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* once */
+	MEMBER_TO_FPTR(Perl_ck_null),	/* padblk */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* custom */
 }
 #endif
@@ -1915,6 +1919,7 @@ EXTCONST U32 PL_opargs[] = {
 	0x0004281d,	/* syscall */
 	0x0000f604,	/* lock */
 	0x00000600,	/* once */
+	0x00000040,	/* padblk */
 	0x00000000,	/* custom */
 };
 #endif

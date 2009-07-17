@@ -2245,6 +2245,7 @@
 #define pp_pack			Perl_pp_pack
 #define pp_padany		Perl_pp_padany
 #define pp_padav		Perl_pp_padav
+#define pp_padblk		Perl_pp_padblk
 #define pp_padhv		Perl_pp_padhv
 #define pp_padsv		Perl_pp_padsv
 #define pp_pipe_op		Perl_pp_pipe_op
@@ -4611,6 +4612,7 @@
 #define pp_pack()		Perl_pp_pack(aTHX)
 #define pp_padany()		Perl_pp_padany(aTHX)
 #define pp_padav()		Perl_pp_padav(aTHX)
+#define pp_padblk()		Perl_pp_padblk(aTHX)
 #define pp_padhv()		Perl_pp_padhv(aTHX)
 #define pp_padsv()		Perl_pp_padsv(aTHX)
 #define pp_pipe_op()		Perl_pp_pipe_op(aTHX)

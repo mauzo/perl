@@ -379,11 +379,12 @@ typedef enum opcode {
 	OP_SYSCALL	 = 361,
 	OP_LOCK		 = 362,
 	OP_ONCE		 = 363,
-	OP_CUSTOM	 = 364,
+	OP_PADBLK	 = 364,
+	OP_CUSTOM	 = 365,
 	OP_max		
 } opcode;
 
-#define MAXO 365
+#define MAXO 366
 #define OP_phoney_INPUT_ONLY -1
 #define OP_phoney_OUTPUT_ONLY -2
 
