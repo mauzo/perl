@@ -20,6 +20,14 @@ install_block(name, sub)
         )
             croak("Invalid special block name '%s'", pv);
 
-        /* install block */
+        gv = gv_fetchpvn_flags(pv, len, GV_NOTQUAL|GV_ADDMULTI, SVt_PVCV);
+        assert(gv);
+
+        CvGV(sub) = gv;
+        CvSPECIAL_on(sub);
+
+        if (!PL_padblkav)
+            PL_padblkav = newAV();
+        av_push(PL_padblkav, SvREFCNT_inc(sub));
 
         XSRETURN_EMPTY;
