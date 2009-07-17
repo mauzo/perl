@@ -1926,7 +1926,8 @@ pda	|PADLIST*|pad_new	|int flags
 pd	|void	|pad_undef	|NN CV* cv
 : Only used in op.c
 pd	|PADOFFSET|pad_add_name	|NN const char *name\
-				|NULLOK HV* typestash|NULLOK HV* ourstash|bool clone|bool state
+				|NULLOK HV* typestash|NULLOK HV* ourstash\
+				|bool clone|U32 kind
 : Only used in op.c
 pd	|PADOFFSET|pad_add_anon	|NN SV* sv|OPCODE op_type
 : Only used in op.c

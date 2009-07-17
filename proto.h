@@ -6061,7 +6061,7 @@ PERL_CALLCONV void	Perl_pad_undef(pTHX_ CV* cv)
 #define PERL_ARGS_ASSERT_PAD_UNDEF	\
 	assert(cv)
 
-PERL_CALLCONV PADOFFSET	Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool clone, bool state)
+PERL_CALLCONV PADOFFSET	Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool clone, U32 kind)
 			__attribute__nonnull__(pTHX_1);
 #define PERL_ARGS_ASSERT_PAD_ADD_NAME	\
 	assert(name)

@@ -307,6 +307,7 @@ perform the upgrade if necessary.  See C<svtype>.
 				       subroutine in another package. Set the
 				       CvIMPORTED_CV_ON() if it needs to be
 				       expanded to a real GV */
+#define SVpad_BLOCKS	SVp_SCREAM  /* pad name: is an AV of padblks */
 
 #define SVs_PADSTALE	0x00010000  /* lexical has gone out of scope */
 #define SVpad_STATE	0x00010000  /* pad name is a "state" var */
@@ -372,8 +373,7 @@ perform the upgrade if necessary.  See C<svtype>.
 #define SVphv_SHAREKEYS 0x20000000  /* PVHV keys live on shared string table */
 /* PVNV, PVMG, presumably only inside pads */
 #define SVpad_NAME	0x40000000  /* This SV is a name in the PAD, so
-				       SVpad_TYPED, SVpad_OUR and SVpad_STATE
-				       apply */
+				       SVpad_* apply */
 /* PVAV */
 #define SVpav_REAL	0x40000000  /* free old entries */
 /* PVHV */
@@ -972,36 +972,22 @@ the scalar's value cannot change unless written to.
 #define SvTAIL_on(sv)		(SvFLAGS(sv) |= SVpbm_TAIL)
 #define SvTAIL_off(sv)		(SvFLAGS(sv) &= ~SVpbm_TAIL)
 
+#define SvPAD_NAME_is(sv, kind) \
+    ((SvFLAGS(sv) & (SVpad_NAME|(kind))) == (SVpad_NAME|(kind)))
 
-#define SvPAD_TYPED(sv) \
-	((SvFLAGS(sv) & (SVpad_NAME|SVpad_TYPED)) == (SVpad_NAME|SVpad_TYPED))
-
-#define SvPAD_OUR(sv)	\
-	((SvFLAGS(sv) & (SVpad_NAME|SVpad_OUR)) == (SVpad_NAME|SVpad_OUR))
-
-#define SvPAD_STATE(sv)	\
-	((SvFLAGS(sv) & (SVpad_NAME|SVpad_STATE)) == (SVpad_NAME|SVpad_STATE))
+#define SvPAD_TYPED(sv)	    SvPAD_NAME_is(sv, SVpad_TYPED)
+#define SvPAD_OUR(sv)	    SvPAD_NAME_is(sv, SVpad_OUR)
+#define SvPAD_STATE(sv)	    SvPAD_NAME_is(sv, SVpad_STATE)
+#define SvPAD_BLOCKS(sv)    SvPAD_NAME_is(sv, SVpad_BLOCKS)
 
 #if defined (DEBUGGING) && defined(__GNUC__) && !defined(PERL_GCC_BRACE_GROUPS_FORBIDDEN)
-#  define SvPAD_TYPED_on(sv)	({					\
-	    SV *const _svpad = MUTABLE_SV(sv);				\
-	    assert(SvTYPE(_svpad) == SVt_PVMG);				\
-	    (SvFLAGS(_svpad) |= SVpad_NAME|SVpad_TYPED);		\
-	})
-#define SvPAD_OUR_on(sv)	({					\
-	    SV *const _svpad = MUTABLE_SV(sv);				\
-	    assert(SvTYPE(_svpad) == SVt_PVMG);				\
-	    (SvFLAGS(_svpad) |= SVpad_NAME|SVpad_OUR);			\
-	})
-#define SvPAD_STATE_on(sv)	({					\
+#  define SvPAD_NAME_set(sv, kind)	({				\
 	    SV *const _svpad = MUTABLE_SV(sv);				\
 	    assert(SvTYPE(_svpad) == SVt_PVNV || SvTYPE(_svpad) == SVt_PVMG); \
-	    (SvFLAGS(_svpad) |= SVpad_NAME|SVpad_STATE);		\
+	    (SvFLAGS(_svpad) |= SVpad_NAME|(kind));			\
 	})
 #else
-#  define SvPAD_TYPED_on(sv)	(SvFLAGS(sv) |= SVpad_NAME|SVpad_TYPED)
-#  define SvPAD_OUR_on(sv)	(SvFLAGS(sv) |= SVpad_NAME|SVpad_OUR)
-#  define SvPAD_STATE_on(sv)	(SvFLAGS(sv) |= SVpad_NAME|SVpad_STATE)
+#  define SvPAD_NAME_set(sv, kind) (SvFLAGS(sv) |= SVpad_NAME|(kind))
 #endif
 
 #define SvOURSTASH(sv)	\

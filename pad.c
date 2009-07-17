@@ -347,15 +347,15 @@ offset.
 If C<typestash> is valid, the name is for a typed lexical; set the
 name's stash to that value.
 If C<ourstash> is valid, it's an our lexical, set the name's
-SvOURSTASH to that value
-
-If fake, it means we're cloning an existing entry
+SvOURSTASH to that value.
+If fake, it means we're cloning an existing entry.
+C<kind> can be SVpad_STATE or SVpad_BLOCKS to create an entry of that type.
 
 =cut
 */
 
 PADOFFSET
-Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool fake, bool state)
+Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool fake, U32 kind)
 {
     dVAR;
     const PADOFFSET offset = pad_alloc(OP_PADSV, SVs_PADMY);
@@ -370,16 +370,16 @@ Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool fake
 
     if (typestash) {
 	assert(SvTYPE(namesv) == SVt_PVMG);
-	SvPAD_TYPED_on(namesv);
+	SvPAD_NAME_set(namesv, SVpad_TYPED);
 	SvSTASH_set(namesv, MUTABLE_HV(SvREFCNT_inc_simple_NN(MUTABLE_SV(typestash))));
     }
     if (ourstash) {
-	SvPAD_OUR_on(namesv);
+	SvPAD_NAME_set(namesv, SVpad_OUR);
 	SvOURSTASH_set(namesv, ourstash);
 	SvREFCNT_inc_simple_void_NN(ourstash);
     }
-    else if (state) {
-	SvPAD_STATE_on(namesv);
+    else if (kind) {
+	SvPAD_NAME_set(namesv, kind);
     }
 
     av_store(PL_comppad_name, offset, namesv);
@@ -399,7 +399,7 @@ Perl_pad_add_name(pTHX_ const char *name, HV* typestash, HV* ourstash, bool fake
 	/* if it's not a simple scalar, replace with an AV or HV */
 	/* XXX DAPM since slot has been allocated, replace
 	 * av_store with PL_curpad[offset] ? */
-	if (*name == '@')
+	if (*name == '@' || SvPAD_BLOCKS(namesv))
 	    av_store(PL_comppad, offset, MUTABLE_SV(newAV()));
 	else if (*name == '%')
 	    av_store(PL_comppad, offset, MUTABLE_SV(newHV()));
@@ -879,7 +879,7 @@ S_pad_findlex(pTHX_ const char *name, const CV* cv, U32 seq, int warn,
 		    ? SvSTASH(*out_name_sv) : NULL,
 	    SvOURSTASH(*out_name_sv),
 	    1,  /* fake */
-	    SvPAD_STATE(*out_name_sv) ? 1 : 0 /* state variable ? */
+	    SvPAD_STATE(*out_name_sv) ? SVpad_STATE : 0 /* state variable ? */
 	);
 
 	new_namesv = AvARRAY(PL_comppad_name)[new_offset];
