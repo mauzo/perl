@@ -4,16 +4,17 @@ our $VERSION = '1.13';
 
 # (feature name) => (internal name, used in %^H)
 my %feature = (
-    switch => 'feature_switch',
-    say    => "feature_say",
-    state  => "feature_state",
+    switch          => 'feature_switch',
+    say             => "feature_say",
+    state           => "feature_state",
+    scopeblocks     => "feature_scopeblocks",
 );
 
 # NB. the latest bundle must be loaded by the -E switch (see toke.c)
 
 my %feature_bundle = (
     "5.10" => [qw(switch say state)],
-    "5.11" => [qw(switch say state)],
+    "5.11" => [qw(switch say state scopeblocks)],
 );
 
 # special case
