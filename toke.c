@@ -563,7 +563,7 @@ S_missingterm(pTHX_ char *s)
 	((0 != (PL_hints & HINT_LOCALIZE_HH))				\
 	    && S_feature_is_enabled(aTHX_ STR_WITH_LEN(name)))
 /* The longest string we pass in.  */
-#define MAX_FEATURE_LEN (sizeof("switch")-1)
+#define MAX_FEATURE_LEN (sizeof("scopeblocks")-1)
 
 /*
  * S_feature_is_enabled
@@ -5864,6 +5864,9 @@ Perl_yylex(pTHX)
 	case KEY_CHECK:
 	case KEY_INIT:
 	case KEY_END:
+	case KEY_SCOPECHECK:
+	case KEY_ENTER:
+	case KEY_LEAVE:
 	    if (PL_expect == XSTATE) {
 		s = PL_bufptr;
 		goto really_sub;
@@ -7405,7 +7408,7 @@ Perl_keyword (pTHX_ const char *name, I32 len, bool all_keywords)
           goto unknown;
       }
 
-    case 3: /* 29 tokens of length 3 */
+    case 3: /* 28 tokens of length 3 */
       switch (name[0])
       {
         case 'E':
@@ -8162,7 +8165,7 @@ Perl_keyword (pTHX_ const char *name, I32 len, bool all_keywords)
           goto unknown;
       }
 
-    case 5: /* 39 tokens of length 5 */
+    case 5: /* 41 tokens of length 5 */
       switch (name[0])
       {
         case 'B':
@@ -8183,6 +8186,28 @@ Perl_keyword (pTHX_ const char *name, I32 len, bool all_keywords)
               name[4] == 'K')
           {                                       /* CHECK      */
             return KEY_CHECK;
+          }
+
+          goto unknown;
+
+        case 'E':
+          if (name[1] == 'N' &&
+              name[2] == 'T' &&
+              name[3] == 'E' &&
+              name[4] == 'R')
+          {                                       /* ENTER      */
+            return (all_keywords || FEATURE_IS_ENABLED("scopeblocks") ? KEY_ENTER : 0);
+          }
+
+          goto unknown;
+
+        case 'L':
+          if (name[1] == 'E' &&
+              name[2] == 'A' &&
+              name[3] == 'V' &&
+              name[4] == 'E')
+          {                                       /* LEAVE      */
+            return (all_keywords || FEATURE_IS_ENABLED("scopeblocks") ? KEY_LEAVE : 0);
           }
 
           goto unknown;
@@ -10092,9 +10117,25 @@ Perl_keyword (pTHX_ const char *name, I32 len, bool all_keywords)
           goto unknown;
       }
 
-    case 10: /* 9 tokens of length 10 */
+    case 10: /* 10 tokens of length 10 */
       switch (name[0])
       {
+        case 'S':
+          if (name[1] == 'C' &&
+              name[2] == 'O' &&
+              name[3] == 'P' &&
+              name[4] == 'E' &&
+              name[5] == 'C' &&
+              name[6] == 'H' &&
+              name[7] == 'E' &&
+              name[8] == 'C' &&
+              name[9] == 'K')
+          {                                       /* SCOPECHECK */
+            return (all_keywords || FEATURE_IS_ENABLED("scopeblocks") ? KEY_SCOPECHECK : 0);
+          }
+
+          goto unknown;
+
         case 'e':
           if (name[1] == 'n' &&
               name[2] == 'd')

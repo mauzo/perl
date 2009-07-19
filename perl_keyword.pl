@@ -6,11 +6,12 @@ use strict;
 use warnings;
 
 my @pos = qw(__DATA__ __END__ AUTOLOAD BEGIN CHECK DESTROY default defined
-	    delete do END else eval elsif exists for format foreach given grep
-	    goto glob INIT if last local m my map next no our pos print printf
-	    package prototype q qr qq qw qx redo return require s say scalar sort
-	    split state study sub tr tie tied use undef UNITCHECK until untie
-	    unless when while y);
+            delete do END ENTER else eval elsif exists for format
+            foreach given grep goto glob INIT if LEAVE last local m my
+            map next no our pos print printf package prototype q qr qq
+            qw qx redo return require SCOPECHECK s say scalar sort split
+            state study sub tr tie tied use undef UNITCHECK until untie
+            unless when while y);
 
 my @neg = qw(__FILE__ __LINE__ __PACKAGE__ and abs alarm atan2 accept bless
 	    break bind binmode CORE cmp chr cos chop close chdir chomp chmod
@@ -45,6 +46,10 @@ my %feature_kw = (
 	say     => 'say',
 
 	state	=> 'state',
+
+        ENTER       => 'scopeblocks',
+        LEAVE       => 'scopeblocks',
+        SCOPECHECK  => 'scopeblocks',
 	);
 
 my %pos = map { ($_ => 1) } @pos;
@@ -68,6 +73,9 @@ I32
 Perl_keyword (pTHX_ const char *name, I32 len, bool all_keywords)
 {
     dVAR;
+
+    PERL_ARGS_ASSERT_KEYWORD;
+
 $switch
 unknown:
   return 0;
