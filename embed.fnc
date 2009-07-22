@@ -320,6 +320,8 @@ p	|void	|dump_sub_perl	|NN const GV* gv|bool justperl
 Apd	|void	|fbm_compile	|NN SV* sv|U32 flags
 ApdR	|char*	|fbm_instr	|NN unsigned char* big|NN unsigned char* bigend \
 				|NN SV* littlestr|U32 flags
+: Defined in toke.c, used in op.c and perly.y
+pdox	|bool	|feature_is_enabled|NN const char *const name|STRLEN namelen
 : Defined in util.c, used only in perl.c
 p	|char*	|find_script	|NN const char *scriptname|bool dosearch \
 				|NULLOK const char *const *const search_ext|I32 flags
@@ -1796,7 +1798,6 @@ sR	|char*	|skipspace	|NN char *s
 sR	|char*	|swallow_bom	|NN U8 *s
 s	|void	|checkcomma	|NN const char *s|NN const char *name \
 				|NN const char *what
-s	|bool	|feature_is_enabled|NN const char *const name|STRLEN namelen
 s	|void	|force_ident	|NN const char *s|int kind
 s	|void	|incline	|NN const char *s
 s	|int	|intuit_method	|NN char *s|NULLOK GV *gv|NULLOK CV *cv

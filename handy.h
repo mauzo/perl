@@ -901,6 +901,12 @@ void Perl_mem_log_del_sv(const SV *sv, const char *filename, const int linenumbe
 #define pTHX__VALUE_
 #define pTHX__VALUE
 #endif /* USE_ITHREADS */
+   
+#define FEATURE_IS_ENABLED(name)				        \
+	((0 != (PL_hints & HINT_LOCALIZE_HH))				\
+	    && Perl_feature_is_enabled(aTHX_ STR_WITH_LEN(name)))
+/* The longest string we pass in.  */
+#define MAX_FEATURE_LEN (sizeof("scopeblocks")-1)
 
 /*
  * Local variables:
