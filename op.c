@@ -6626,7 +6626,9 @@ Perl_ck_eval(pTHX_ OP *o)
 	    o->op_flags &= ~OPf_KIDS;
 	    op_null(o);
 	}
-	else if (kid->op_type == OP_LINESEQ || kid->op_type == OP_STUB) {
+	else if (kid->op_type == OP_LINESEQ || kid->op_type == OP_STUB
+	    || kid->op_type == OP_PADBLK)
+	{
 	    LOGOP *enter;
 #ifdef PERL_MAD
 	    OP* const oldo = o;

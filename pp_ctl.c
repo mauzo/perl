@@ -2349,7 +2349,14 @@ STATIC void
 S_call_padblkav(pTHX_ void *av)
 {
     dVAR;
+    dSP;
+
+    ENTER;
+    PUSHSTACKi(PERLSI_PADBLK);
     call_list(PL_scopestack_ix, MUTABLE_AV(av));
+    POPSTACK;
+    SPAGAIN;
+    LEAVE;
 }
 
 PP(pp_padblk)
