@@ -1278,6 +1278,7 @@
 #define looks_like_bool		S_looks_like_bool
 #define newGIVWHENOP		S_newGIVWHENOP
 #define ref_array_or_hash	S_ref_array_or_hash
+#define process_padblks		S_process_padblks
 #define process_special_blocks	S_process_special_blocks
 #endif
 #endif
@@ -3626,6 +3627,7 @@
 #define looks_like_bool(a)	S_looks_like_bool(aTHX_ a)
 #define newGIVWHENOP(a,b,c,d,e)	S_newGIVWHENOP(aTHX_ a,b,c,d,e)
 #define ref_array_or_hash(a)	S_ref_array_or_hash(aTHX_ a)
+#define process_padblks(a,b)	S_process_padblks(aTHX_ a,b)
 #define process_special_blocks(a,b,c)	S_process_special_blocks(aTHX_ a,b,c)
 #endif
 #endif

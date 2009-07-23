@@ -2253,6 +2253,8 @@ Perl_block_start(pTHX_ int full)
     dVAR;
     const int retval = PL_savestack_ix;
     pad_block_start(full);
+    SAVESPTR(PL_padblkav);
+    PL_padblkav = NULL;
     SAVEHINTS();
     PL_hints &= ~HINT_BLOCK_SCOPE;
     SAVECOMPILEWARNINGS();
@@ -2265,12 +2267,18 @@ Perl_block_end(pTHX_ I32 floor, OP *seq)
 {
     dVAR;
     const int needblockscope = PL_hints & HINT_BLOCK_SCOPE;
-    OP* const retval = scalarseq(seq);
+    AV *padblks = PL_padblkav;
+    OP *retval = scalarseq(seq);
+
     LEAVE_SCOPE(floor);
+
     CopHINTS_set(&PL_compiling, PL_hints);
     if (needblockscope)
 	PL_hints |= HINT_BLOCK_SCOPE; /* propagate out */
     pad_leavemy();
+    if (padblks && padblks != PL_padblkav)
+	retval = process_padblks(padblks, retval);
+
     return retval;
 }
 
@@ -5289,6 +5297,48 @@ Perl_newWHENOP(pTHX_ OP *cond, OP *block)
 	cond_op,
 	append_elem(block->op_type, block, newOP(OP_BREAK, OPf_SPECIAL)),
 	OP_ENTERWHEN, OP_LEAVEWHEN, 0);
+}
+
+STATIC OP *
+S_process_padblks(pTHX_ AV *padblks, OP *o)
+{
+    I32 i;
+    AV *scopecheckav = NULL;
+
+    PERL_ARGS_ASSERT_PROCESS_PADBLKS;
+
+    assert(padblks);
+    assert(SvTYPE(padblks) == SVt_PVAV);
+
+    for (i = 0; i <= AvFILL(padblks); i++) {
+	CV *cv = (CV *)AvARRAY(padblks)[i];
+	const char *name;
+
+	assert(SvTYPE(cv) == SVt_PVCV);
+	assert(CvSPECIAL(cv));
+
+	name = GvNAME(CvGV(cv));
+
+	if (strEQ(name, "SCOPECHECK"))
+	    Perl_av_create_and_unshift_one(aTHX_ &scopecheckav,
+		SvREFCNT_inc(cv));
+    }
+
+    SvREFCNT_dec(padblks);
+
+    if (scopecheckav) {
+	const I32 oldscope = PL_scopestack_ix;
+	
+	ENTER;
+	SAVECOPFILE(&PL_compiling);
+	SAVECOPLINE(&PL_compiling);
+	call_list(oldscope, scopecheckav);
+	PL_curcop = &PL_compiling;
+	CopHINTS_set(&PL_compiling, PL_hints);
+	LEAVE;
+
+	SvREFCNT_dec(scopecheckav);
+    }
 }
 
 /*
