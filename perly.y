@@ -583,6 +583,10 @@ subname	:	WORD	{ const char *const name = SvPV_nolen_const(((SVOP*)$1)->op_sv);
 			      || strEQ(name, "INIT") || strEQ(name, "CHECK")
 			      || strEQ(name, "UNITCHECK"))
 			      CvSPECIAL_on(PL_compcv);
+                          if (FEATURE_IS_ENABLED("scopeblocks")
+                              && (strEQ(name, "SCOPECHECK")
+                              || strEQ(name, "ENTER") || strEQ(name, "LEAVE")))
+                              CvSPECIAL_on(PL_compcv);
 			  $$ = $1; }
 	;
 

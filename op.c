@@ -5969,6 +5969,7 @@ S_process_special_blocks(pTHX_ const char *const fullname, GV *const gv,
 {
     const char *const colon = strrchr(fullname,':');
     const char *const name = colon ? colon + 1 : fullname;
+    const bool padblks = FEATURE_IS_ENABLED("scopeblocks");
 
     PERL_ARGS_ASSERT_PROCESS_SPECIAL_BLOCKS;
 
@@ -5995,7 +5996,9 @@ S_process_special_blocks(pTHX_ const char *const fullname, GV *const gv,
 	    if strEQ(name, "END") {
 		DEBUG_x( dump_sub(gv) );
 		Perl_av_create_and_unshift_one(aTHX_ &PL_endav, MUTABLE_SV(cv));
-	    } else
+	    } else if (padblks && strEQ(name, "ENTER"))
+		Perl_av_create_and_push(aTHX_ &PL_padblkav, MUTABLE_SV(cv));
+	    else
 		return;
 	} else if (*name == 'U') {
 	    if (strEQ(name, "UNITCHECK")) {
@@ -6020,6 +6023,16 @@ S_process_special_blocks(pTHX_ const char *const fullname, GV *const gv,
 				"Too late to run INIT block");
 		Perl_av_create_and_push(aTHX_ &PL_initav, MUTABLE_SV(cv));
 	    }
+	    else
+		return;
+	} else if (*name == 'L') {
+	    if (padblks && strEQ(name, "LEAVE"))
+		Perl_av_create_and_push(aTHX_ &PL_padblkav, MUTABLE_SV(cv));
+	    else
+		return;
+	} else if (*name == 'S') {
+	    if (padblks && strEQ(name, "SCOPECHECK"))
+		Perl_av_create_and_push(aTHX_ &PL_padblkav, MUTABLE_SV(cv));
 	    else
 		return;
 	} else
