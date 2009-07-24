@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use feature ":5.11";
 
-plan tests => 15*2 + 7;
+plan tests => 15*3 + 7;
 
 my $got;
 
@@ -36,21 +36,29 @@ my $got;
         my ($type, $block) = @$_;
 
         $got = "";
-        $block =~ s{\{\*\}}'
-            {
-                LEAVE { $got .= ":leave1" }
-                ENTER { $got .= ":enter1" }
-                SCOPECHECK { $got .= ":scopecheck1" }
-                BEGIN { $got .= ":begin1" }
-                $got .= ":run1";
-            }
-        ';
+        $block =~ s'\{\*\}'{
+            LEAVE { $got .= ":leave1" }
+            ENTER { $got .= ":enter1" }
+            SCOPECHECK { $got .= ":scopecheck1" }
+            BEGIN { $got .= ":begin1" }
+            $got .= ":run1";
+        }';
         my $rv = eval "$block; 1;";
 
-        ok $rv,     "$type block accepts scope blocks"
+        ok $rv,             "$type block accepts scope blocks"
             or diag "\$\@: $@";
         is $got, ":begin1:scopecheck1:enter1:run1:leave1",
-            "$type block runs scope blocks";
+                            "$type block runs scope blocks";
+
+        $got = "";
+        ($block = $_->[1]) =~ s'\{\*\}'{
+            ENTER { $got .= ":enter1" }
+            LEAVE { $got .= ":leave1" }
+        }';
+        eval $block;
+
+        is $got, ":enter1:leave1", 
+                            "empty $type block runs scope blocks";
     }
 }
 

@@ -1445,7 +1445,7 @@ s	|void	|cop_free	|NN COP *cop
 s	|OP*	|modkids	|NULLOK OP *o|I32 type
 s	|OP*	|scalarboolean	|NN OP *o
 sR	|OP*	|newDEFSVOP
-sR	|OP*	|newPADBLK	|NN const char *name|NN AV *av|NN OP *next
+sR	|OP*	|newPADBLK	|NN const char *name|NN AV *av|NN OP *o
 sR	|OP*	|search_const	|NN OP *o
 sR	|OP*	|new_logop	|I32 type|I32 flags|NN OP **firstp|NN OP **otherp
 s	|void	|simplify_sort	|NN OP *o

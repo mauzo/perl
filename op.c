@@ -5373,9 +5373,9 @@ S_process_padblks(pTHX_ AV *padblks, OP *o)
 }
 
 STATIC OP *
-S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
+S_newPADBLK(pTHX_ const char *name, AV *av, OP *o)
 {
-    OP *o;
+    OP *new;
     PADOFFSET padix;
 
     PERL_ARGS_ASSERT_NEWPADBLK;
@@ -5383,17 +5383,31 @@ S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
     padix = pad_add_name(name, NULL, NULL, 0, SVpad_BLOCKS);
     av_store(PL_comppad, padix, MUTABLE_SV(av));
 
-    NewOp(1101, o, 1, OP);
-    o->op_type = OP_PADBLK;
-    o->op_ppaddr = PL_ppaddr[OP_PADBLK];
-    o->op_flags = 0;
-    o->op_latefree = 0;
-    o->op_latefreed = 0;
-    o->op_attached = 0;
-    o->op_sibling = next;
-    o->op_targ = padix;
+    NewOp(1101, new, 1, OP);
+    new->op_type = OP_PADBLK;
+    new->op_ppaddr = PL_ppaddr[OP_PADBLK];
+    new->op_flags = 0;
+    new->op_latefree = 0;
+    new->op_latefreed = 0;
+    new->op_attached = 0;
+    new->op_targ = padix;
 
-    return CHECKOP(OP_PADBLK, o);
+    if (o->op_type == OP_LINESEQ) {
+	new->op_sibling = cLISTOPo->op_first;
+	cLISTOPo->op_first = CHECKOP(OP_PADBLK, new);
+	cLISTOPo->op_private++;
+    }
+    else if (o->op_type == OP_STUB) {
+	FreeOp(o);
+	o = newLISTOP(OP_LINESEQ, 0, CHECKOP(OP_PADBLK, new), NULL);
+    }
+    else {
+	/* XXX I don't think this case is possible */
+	new->op_sibling = o;
+	o = CHECKOP(OP_PADBLK, new);
+    }
+
+    return o;
 }
 
 /*
@@ -6626,8 +6640,7 @@ Perl_ck_eval(pTHX_ OP *o)
 	    o->op_flags &= ~OPf_KIDS;
 	    op_null(o);
 	}
-	else if (kid->op_type == OP_LINESEQ || kid->op_type == OP_STUB
-	    || kid->op_type == OP_PADBLK)
+	else if (kid->op_type == OP_LINESEQ || kid->op_type == OP_STUB)
 	{
 	    LOGOP *enter;
 #ifdef PERL_MAD
