@@ -9,10 +9,52 @@ BEGIN {
 use strict;
 use feature ":5.11";
 
-plan tests => 7;
+plan tests => 15*2 + 7;
 
 my $got;
 
+{
+    my @blocks = (
+        [bare       => '{*}'                            ],
+        [do         => 'do {*}'                         ],
+        [while      => 'my $x; while (not $x++) {*}'    ],
+        [foreach    => 'for (1) {*}'                    ],
+        ["C for"    => 'for (my $x; !$x; $x++) {*}'     ],
+        [continue   => 'for (1) {} continue {*}'        ],
+        [if         => 'if (1) {*}'                     ],
+        [else       => 'if (0) {} else {*}'             ],
+        [elsif      => 'if (0) {} elsif (1) {*}'        ],
+        [given      => 'given (1) {*}'                  ],
+        [when       => 'given (1) { when (1) {*} }'     ],
+        [default    => 'given (1) { default {*} }'      ],
+        [try        => 'eval {*}'                       ],
+        [eval       => 'eval q{*}'                      ],
+        ["sub"      => 'sub foo {*} foo'                ],
+    );
+
+    for (@blocks) {
+        my ($type, $block) = @$_;
+
+        $got = "";
+        $block =~ s{\{\*\}}'
+            {
+                LEAVE { $got .= ":leave1" }
+                ENTER { $got .= ":enter1" }
+                SCOPECHECK { $got .= ":scopecheck1" }
+                BEGIN { $got .= ":begin1" }
+                $got .= ":run1";
+            }
+        ';
+        my $rv = eval "$block; 1;";
+
+        ok $rv,     "$type block accepts scope blocks"
+            or diag "\$\@: $@";
+        is $got, ":begin1:scopecheck1:enter1:run1:leave1",
+            "$type block runs scope blocks";
+    }
+}
+
+$got = "";
 eval q{
     BEGIN { $got .= ":begin1" }
 
