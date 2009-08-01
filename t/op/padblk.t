@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use feature ":5.11";
 
-plan tests => 15*3 + 7;
+plan tests => 15*3 + 9;
 
 my $got;
 
@@ -145,3 +145,71 @@ eval {
 is $got, ":leave2:leave1",
     "LEAVE called even on die";
 
+$got = "";
+eval {
+    ENTER { die }
+    LEAVE { $got .= ":leave1" }
+    $got .= ":run1";
+};
+
+is $got, ":leave1",
+    "LEAVE called even if ENTER dies";
+
+$got = "";
+eval {
+    ENTER { $got .= ":enter1"; die }
+    ENTER { $got .= ":enter2" }
+};
+
+is $got, ":enter1",
+    "ENTER queue aborted on die";
+
+$got = "";
+eval {
+    eval {
+        LEAVE { $got .= ":leave1"; die }
+    };
+    $got .= "eval1";
+};
+
+is $got, ":leave1:eval1",
+    "die in LEAVE can be caught by eval";
+
+$got = "";
+eval {
+    eval {
+        LEAVE { $got .= ":leave1"; }
+        LEAVE { $got .= ":leave2"; die }
+    };
+};
+
+is $got, ":leave2:leave1",
+    "LEAVE queue not aborted on die";
+
+fresh_perl_is
+    q{
+        use feature "scopeblocks";
+        ENTER { print ":enter1"; exit 0 }
+        ENTER { print ":enter2" }
+    },
+    ":enter1",
+    undef, "ENTER queue aborted on exit";
+
+fresh_perl_is
+    q{
+        use feature "scopeblocks";
+        ENTER { print ":enter1"; exit 0 }
+        LEAVE { print ":leave1" }
+        LEAVE { print ":leave2" }
+    },
+    ":enter1:leave2:leave1",
+    undef, "LEAVE queue run on exit";
+
+fresh_perl_is
+    q{
+        use feature "scopeblocks";
+        LEAVE { print ":leave1" }
+        LEAVE { print ":leave2"; exit 0 }
+    },
+    ":leave2:leave1",
+    undef, "LEAVE queue not aborted on exit";
