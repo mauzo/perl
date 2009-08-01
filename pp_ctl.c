@@ -2345,31 +2345,55 @@ PP(pp_redo)
     return redo_op;
 }
 
+struct call_padblk_args {
+    AV *av;
+    I32 flags;
+};
+
 STATIC void
-S_call_padblkav(pTHX_ void *av)
+S_call_padblks(pTHX_ void *vp)
 {
     dVAR;
     dSP;
+    struct call_padblk_args *args = (struct call_padblk_args *)vp;
+    I32 i;
+    CV *cv;
+
+    PERL_ARGS_ASSERT_CALL_PADBLKS;
+
+    if (args->flags & OPpPADBLK_AFTER) {
+	args->flags &= ~OPpPADBLK_AFTER;
+	SAVEDESTRUCTOR_X(S_call_padblks, args);
+	return;
+    }
 
     ENTER;
     PUSHSTACKi(PERLSI_PADBLK);
-    call_list(PL_scopestack_ix, MUTABLE_AV(av));
+
+    for (i = 0; i <= AvFILL(args->av); i++) {
+	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
+	PUSHMARK(SP);
+	call_sv(MUTABLE_SV(cv), G_DISCARD|G_NOARGS);
+    }
+
     POPSTACK;
     SPAGAIN;
     LEAVE;
+
+    Safefree(args);
 }
 
 PP(pp_padblk)
 {
     dVAR;
-    AV *av;
+    struct call_padblk_args *args;
 
-    av = MUTABLE_AV(PAD_SV(PL_op->op_targ));
+    Newx(args, 1, struct call_padblk_args);
 
-    if (PL_op->op_private & OPpPADBLK_AFTER)
-	SAVEDESTRUCTOR_X(S_call_padblkav, (void*)av);
-    else
-	call_list(PL_scopestack_ix, av);
+    args->av = MUTABLE_AV(PAD_SV(PL_op->op_targ));
+    args->flags = PL_op->op_private;
+
+    call_padblks(args);
 
     return NORMAL;
 }

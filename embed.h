@@ -758,6 +758,7 @@
 #define rsignal_state		Perl_rsignal_state
 #if defined(PERL_IN_PP_CTL_C) || defined(PERL_DECL_PROT)
 #ifdef PERL_CORE
+#define call_padblks		S_call_padblks
 #define rxres_free		S_rxres_free
 #define rxres_restore		S_rxres_restore
 #endif
@@ -3107,6 +3108,7 @@
 #define rsignal_state(a)	Perl_rsignal_state(aTHX_ a)
 #if defined(PERL_IN_PP_CTL_C) || defined(PERL_DECL_PROT)
 #ifdef PERL_CORE
+#define call_padblks(a)		S_call_padblks(aTHX_ a)
 #define rxres_free(a)		S_rxres_free(aTHX_ a)
 #define rxres_restore(a,b)	S_rxres_restore(aTHX_ a,b)
 #endif

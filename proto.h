@@ -2696,6 +2696,11 @@ PERL_CALLCONV int	Perl_rsignal_save(pTHX_ int i, Sighandler_t t1, Sigsave_t* sav
 
 PERL_CALLCONV Sighandler_t	Perl_rsignal_state(pTHX_ int i);
 #if defined(PERL_IN_PP_CTL_C) || defined(PERL_DECL_PROT)
+STATIC void	S_call_padblks(pTHX_ void *vp)
+			__attribute__nonnull__(pTHX_1);
+#define PERL_ARGS_ASSERT_CALL_PADBLKS	\
+	assert(vp)
+
 STATIC void	S_rxres_free(pTHX_ void** rsp)
 			__attribute__nonnull__(pTHX_1);
 #define PERL_ARGS_ASSERT_RXRES_FREE	\
