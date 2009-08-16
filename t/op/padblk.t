@@ -135,6 +135,28 @@ $got = "";
 is $got, ":leave2:leave1",
     "LEAVE called in reverse order";
 
+sub ctx { defined wantarray ? wantarray ? "LIST" : "SCALAR" : "VOID" }
+
+{
+    local ($", $_, @_) = qw/: a b c/;
+    no warnings "uninitialized";
+
+    $got = "";
+    do { LEAVE { $got .= ctx . ":$_:@_" } "foo" };
+
+    is $got, "VOID:foo:", "LEAVE in void ctx";
+
+    $got = "";
+    my $x = do { LEAVE { $got .= ctx . ":$_:@_" } "bar" };
+
+    is $got, "SCALAR:bar:", "LEAVE in scalar ctx";
+
+    $got = "";
+    my @x = do { LEAVE { warn "leave: " . ctx; $got .= ctx . ":$_:@_" } qw/baz quux/ };
+
+    is $got, "LIST::baz:quux", "LEAVE in list ctx";
+}
+
 $got = "";
 eval {
     LEAVE { $got .= ":leave1" }
