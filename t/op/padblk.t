@@ -43,11 +43,12 @@ my $got;
             BEGIN { $got .= ":begin1" }
             $got .= ":run1";
         }';
+        $block =~ s'$'; $got .= ":run2";';
         my $rv = eval "$block; 1;";
 
         ok $rv,             "$type block accepts scope blocks"
             or diag "\$\@: $@";
-        is $got, ":begin1:scopecheck1:enter1:run1:leave1",
+        is $got, ":begin1:scopecheck1:enter1:run1:leave1:run2",
                             "$type block runs scope blocks";
 
         $got = "";
@@ -135,24 +136,31 @@ $got = "";
 is $got, ":leave2:leave1",
     "LEAVE called in reverse order";
 
-sub ctx { defined wantarray ? wantarray ? "LIST" : "SCALAR" : "VOID" }
+sub ctx { 
+    my $ctx = 
+        defined wantarray ? 
+            wantarray ? "LIST" : "SCALAR" :
+        "VOID";
+    warn "CONTEXT: $ctx";
+    return $ctx;
+}
 
 {
     local ($", $_, @_) = qw/: a b c/;
     no warnings "uninitialized";
 
     $got = "";
-    do { LEAVE { $got .= ctx . ":$_:@_" } "foo" };
+    do { { LEAVE { $got .= ctx . ":$_:@_" } "foo" } };
 
     is $got, "VOID:foo:", "LEAVE in void ctx";
 
     $got = "";
-    my $x = do { LEAVE { $got .= ctx . ":$_:@_" } "bar" };
+    my $x = do { { LEAVE { $got .= ctx . ":$_:@_" } "bar" } };
 
     is $got, "SCALAR:bar:", "LEAVE in scalar ctx";
 
     $got = "";
-    my @x = do { LEAVE { warn "leave: " . ctx; $got .= ctx . ":$_:@_" } qw/baz quux/ };
+    my @x = do { { LEAVE { $got .= ctx . ":$_:@_" } qw/baz quux/ } };
 
     is $got, "LIST::baz:quux", "LEAVE in list ctx";
 }
@@ -191,7 +199,7 @@ eval {
     eval {
         LEAVE { $got .= ":leave1"; die }
     };
-    $got .= "eval1";
+    $got .= ":eval1";
 };
 
 is $got, ":leave1:eval1",
