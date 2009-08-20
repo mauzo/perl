@@ -653,6 +653,9 @@ if ($] >= 5.009) {
   $priv{$_}{2} = "GREPLEX"
     for ("mapwhile", "mapstart", "grepwhile", "grepstart");
 }
+if ($] >= 5.011) {
+    $priv{"padblk"}{1} = "AFTER";
+}
 
 our %hints; # used to display each COP's op_hints values
 
