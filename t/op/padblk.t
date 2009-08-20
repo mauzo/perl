@@ -137,12 +137,13 @@ is $got, ":leave2:leave1",
     "LEAVE called in reverse order";
 
 sub ctx { 
-    my $ctx = 
-        defined wantarray ? 
-            wantarray ? "LIST" : "SCALAR" :
-        "VOID";
-    warn "CONTEXT: $ctx";
-    return $ctx;
+    my $gimme = (caller 1)[5];
+    defined $gimme ? $gimme ? "LIST" : "SCALAR" : "VOID";
+}
+
+sub doctx {
+    ENTER { $got .= ":ENTER:" . ctx . ":$_:@_" }
+    LEAVE { $got .= ":LEAVE:" . ctx . ":$_:@_" }
 }
 
 {
@@ -150,19 +151,19 @@ sub ctx {
     no warnings "uninitialized";
 
     $got = "";
-    do { { LEAVE { $got .= ctx . ":$_:@_" } "foo" } };
+    doctx;
 
-    is $got, "VOID:foo:", "LEAVE in void ctx";
-
-    $got = "";
-    my $x = do { { LEAVE { $got .= ctx . ":$_:@_" } "bar" } };
-
-    is $got, "SCALAR:bar:", "LEAVE in scalar ctx";
+    is $got, ":ENTER:VOID:::LEAVE:VOID::", "padblks in void ctx";
 
     $got = "";
-    my @x = do { { LEAVE { $got .= ctx . ":$_:@_" } qw/baz quux/ } };
+    my $x = doctx;
 
-    is $got, "LIST::baz:quux", "LEAVE in list ctx";
+    is $got, ":ENTER:SCALAR:::LEAVE:SCALAR:bar:", "padblks in scalar ctx";
+
+    $got = "";
+    my @x = doctx;
+
+    is $got, ":ENTER:LIST:::LEAVE:LIST::baz:quux", "padblks in list ctx";
 }
 
 $got = "";

@@ -2356,7 +2356,7 @@ S_call_padblks(pTHX_ void *vp)
     dVAR;
     dSP;
     struct call_padblk_args *args = (struct call_padblk_args *)vp;
-    I32 i;
+    I32 i, cxix, gimme;
     CV *cv;
 
     PERL_ARGS_ASSERT_CALL_PADBLKS;
@@ -2367,13 +2367,19 @@ S_call_padblks(pTHX_ void *vp)
 	return;
     }
 
+    cxix = dopoptosub(cxstack_ix);
+    if (cxix < 0)
+	gimme = G_VOID;
+    else
+	gimme = cxstack[cxix].blk_gimme;
+
     ENTER;
     PUSHSTACKi(PERLSI_PADBLK);
 
     for (i = 0; i <= AvFILL(args->av); i++) {
 	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
 	PUSHMARK(SP);
-	call_sv(MUTABLE_SV(cv), G_DISCARD|G_NOARGS);
+	call_sv(MUTABLE_SV(cv), gimme|G_DISCARD|G_NOARGS);
     }
 
     POPSTACK;
