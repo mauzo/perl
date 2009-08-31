@@ -2361,8 +2361,15 @@ S_call_padblks(pTHX_ void *vp)
 
     PERL_ARGS_ASSERT_CALL_PADBLKS;
 
-    if (args->flags & OPpPADBLK_AFTER) {
-	args->flags &= ~OPpPADBLK_AFTER;
+    if ((args->flags & (OPpPADBLK_AFTER|OPpPADBLK_IN_AFTER))
+	    == OPpPADBLK_AFTER) {
+	/* This is balanced by the LEAVE in pp_leavetry. It is necessary
+	 * to ensure the destructors are called *before* the eval scope
+	 * is torn down.
+	 */
+	if (args->flags & OPpPADBLK_ENTER)
+	    ENTER;
+	args->flags |= OPpPADBLK_IN_AFTER;
 	SAVEDESTRUCTOR_X(S_call_padblks, args);
 	return;
     }
@@ -2379,7 +2386,10 @@ S_call_padblks(pTHX_ void *vp)
     for (i = 0; i <= AvFILL(args->av); i++) {
 	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
 	PUSHMARK(SP);
-	call_sv(MUTABLE_SV(cv), gimme|G_DISCARD|G_NOARGS);
+	call_sv(MUTABLE_SV(cv), gimme|G_DISCARD|G_NOARGS|G_EVAL);
+
+	if (!(args->flags & OPpPADBLK_AFTER) && SvTRUE(ERRSV))
+	    break;
     }
 
     POPSTACK;
@@ -2387,6 +2397,9 @@ S_call_padblks(pTHX_ void *vp)
     LEAVE;
 
     Safefree(args);
+
+    if (SvTRUE(ERRSV))
+	Perl_die(aTHX_ NULL);
 }
 
 PP(pp_padblk)
@@ -3922,6 +3935,9 @@ PP(pp_leavetry)
     I32 gimme;
     register PERL_CONTEXT *cx;
     I32 optype;
+
+    if (PL_op->op_private & OPpSCOPE_LEAVE)
+	LEAVE;
 
     POPBLOCK(cx,newpm);
     POPEVAL(cx);

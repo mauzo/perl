@@ -710,12 +710,6 @@ PP(pp_lineseq)
     return NORMAL;
 }
 
-PP(pp_scope)
-{
-    dVAR;
-    return NORMAL;
-}
-
 /* Ops that are calls to do_kv.  */
 PP(pp_values)
 {

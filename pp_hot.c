@@ -80,6 +80,16 @@ PP(pp_pushmark)
     return NORMAL;
 }
 
+PP(pp_scope)
+{
+    dVAR;
+
+    if (PL_op->op_private & OPpSCOPE_LEAVE)
+	LEAVE;
+
+    return NORMAL;
+}
+
 PP(pp_stringify)
 {
     dVAR; dSP; dTARGET;

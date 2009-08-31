@@ -62,7 +62,7 @@ my @raw_alias = (
 		 Perl_do_kv => [qw( keys values )],
 		 Perl_unimplemented_op => [qw(padany mapstart custom)],
 		 # All the ops with a body of { return NORMAL; }
-		 Perl_pp_null => [qw(scalar regcmaybe lineseq scope)],
+		 Perl_pp_null => [qw(scalar regcmaybe lineseq)],
 
 		 Perl_pp_goto => ['dump'],
 		 Perl_pp_require => ['dofile'],
@@ -871,7 +871,7 @@ dbstate		debug next statement	ck_null		s;
 unstack		iteration finalizer	ck_null		s0
 enter		block entry		ck_null		0	
 leave		block exit		ck_null		@	
-scope		block			ck_null		@	
+scope		block			ck_scope	@	
 enteriter	foreach loop entry	ck_null		d{	
 iter		foreach loop iterator	ck_null		0	
 enterloop	loop entry		ck_null		d{	
@@ -1068,7 +1068,7 @@ entereval	eval "string"		ck_eval		d%	S
 leaveeval	eval "string" exit	ck_null		1	S
 #evalonce	eval constant string	ck_null		d1	S
 entertry	eval {block}		ck_null		|	
-leavetry	eval {block} exit	ck_null		@	
+leavetry	eval {block} exit	ck_scope	@	
 
 # Get system info.
 

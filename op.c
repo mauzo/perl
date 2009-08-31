@@ -2244,7 +2244,7 @@ Perl_scope(pTHX_ OP *o)
 	else
 	    o = newLISTOP(OP_SCOPE, 0, o, NULL);
     }
-    return o;
+    return CHECKOP(o->op_type, o);
 }
 	
 int
@@ -6667,7 +6667,7 @@ Perl_ck_eval(pTHX_ OP *o)
 	    o->op_ppaddr = PL_ppaddr[OP_LEAVETRY];
 	    enter->op_other = o;
 	    op_getmad(oldo,o,'O');
-	    return o;
+	    return CHECKOP(OP_LEAVETRY, o);
 	}
 	else {
 	    scalar((OP*)kid);
@@ -7796,6 +7796,26 @@ Perl_ck_return(pTHX_ OP *o)
 }
 
 OP *
+Perl_ck_scope(pTHX_ OP *o)
+{
+    OP *body;
+
+    PERL_ARGS_ASSERT_CK_SCOPE;
+
+    body = cLISTOPo->op_first;
+    if (body->op_type == OP_ENTERTRY)
+	body = body->op_sibling;
+
+    if (body->op_type == OP_PADBLK && 
+	body->op_private & OPpPADBLK_AFTER) {
+	o->op_private |= OPpSCOPE_LEAVE;
+	body->op_private |= OPpPADBLK_ENTER;
+    }
+
+    return o;
+}
+
+OP *
 Perl_ck_select(pTHX_ OP *o)
 {
     dVAR;
@@ -8529,6 +8549,10 @@ Perl_peep(pTHX_ register OP *o)
 		break; /* Scalar stub must produce undef.  List stub is noop */
 	    }
 	    goto nothin;
+	case OP_SCOPE:
+	    if (o->op_private & OPpSCOPE_LEAVE)
+		break;
+	    goto nothin;
 	case OP_NULL:
 	    if (o->op_targ == OP_NEXTSTATE
 		|| o->op_targ == OP_DBSTATE)
@@ -8544,7 +8568,6 @@ Perl_peep(pTHX_ register OP *o)
 	    /* FALL THROUGH */
 	case OP_SCALAR:
 	case OP_LINESEQ:
-	case OP_SCOPE:
 	nothin:
 	    if (oldop && o->op_next) {
 		oldop->op_next = o->op_next;

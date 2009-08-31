@@ -278,8 +278,13 @@ Deprecated.  Use C<GIMME_V> instead.
 /* Private for OP_ENTEREVAL */
 #define OPpEVAL_HAS_HH		2	/* Does it have a copy of %^H */
 
+/* Private for OP_SCOPE and OP_LEAVETRY */
+#define OPpSCOPE_LEAVE		2	/* need an extra LEAVE for padblks */
+
 /* Private for OP_PADBLK */
 #define OPpPADBLK_AFTER		1	/* Run at end of scope, not now */
+#define OPpPADBLK_IN_AFTER	2	/* Internal to call_padblks */
+#define OPpPADBLK_ENTER		4	/* do an extra ENTER */
     
 struct op {
     BASEOP

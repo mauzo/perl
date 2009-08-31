@@ -525,7 +525,8 @@ sub sequence {
     for (; $$op; $op = $op->next) {
 	last if exists $sequence_num{$$op};
 	my $name = $op->name;
-	if ($name =~ /^(null|scalar|lineseq|scope)$/) {
+        if ($name eq "scope" and not $op->private & 2
+	    or $name =~ /^(null|scalar|lineseq)$/) {
 	    next if $oldop and $ {$op->next};
 	} else {
 	    $sequence_num{$$op} = $seq_max++;
@@ -654,7 +655,8 @@ if ($] >= 5.009) {
     for ("mapwhile", "mapstart", "grepwhile", "grepstart");
 }
 if ($] >= 5.011) {
-    $priv{"padblk"}{1} = "AFTER";
+    @{$priv{"padblk"}}{1,4} = ("AFTER", "ENTER");
+    $priv{$_}{2} = "LEAVE" for ("scope", "leavetry");
 }
 
 our %hints; # used to display each COP's op_hints values
