@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use feature ":5.11";
 
-plan tests => 15*3 + 9;
+plan tests => 15*3 + 17;
 
 my $got;
 
