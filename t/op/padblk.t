@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use feature ":5.11";
 
-plan tests => 15*3 + 17;
+plan tests => 15*3 + 23;
 
 my $got;
 
@@ -142,8 +142,21 @@ sub ctx {
 }
 
 sub doctx {
-    ENTER { $got .= ":ENTER:" . ctx . ":$_:@_" }
-    LEAVE { $got .= ":LEAVE:" . ctx . ":$_:@_" }
+    ENTER { $got .= ":ENTER:" . ctx }
+    LEAVE { $got .= ":LEAVE:" . ctx }
+    qw/foo bar/;
+}
+
+sub doargs {
+    ENTER { $got .= ":ENTER:@_" }
+    LEAVE { $got .= ":LEAVE:@_" }
+    qw/foo bar/;
+}
+
+sub dotopic {
+    ENTER { $got .= ":ENTER:$_" }
+    LEAVE { $got .= ":LEAVE:$_" }
+    qw/foo bar/;
 }
 
 {
@@ -152,18 +165,39 @@ sub doctx {
 
     $got = "";
     doctx;
+    is $got, ":ENTER:VOID:LEAVE:VOID",      "padblks in void ctx";
 
-    is $got, ":ENTER:VOID:::LEAVE:VOID::", "padblks in void ctx";
+    $got = "";
+    doargs;
+    is $got, ":ENTER::LEAVE:bar",           "\@_ in void ctx";
+
+    $got = "";
+    dotopic;
+    is $got, ":ENTER::LEAVE:",              "\$_ in void ctx";
 
     $got = "";
     my $x = doctx;
+    is $got, ":ENTER:SCALAR:LEAVE:SCALAR",  "padblks in scalar ctx";
 
-    is $got, ":ENTER:SCALAR:::LEAVE:SCALAR:bar:", "padblks in scalar ctx";
+    $got = "";
+    $x = doargs;
+    is $got, ":ENTER::LEAVE:bar",           "\@_ in scalar ctx";
+
+    $got = "";
+    $x = dotopic;
+    is $got, ":ENTER::LEAVE:bar",           "\$_ in scalar ctx";
 
     $got = "";
     my @x = doctx;
+    is $got, ":ENTER:LIST:LEAVE:LIST",      "padblks in list ctx";
 
-    is $got, ":ENTER:LIST:::LEAVE:LIST::baz:quux", "padblks in list ctx";
+    $got = "";
+    @x = doargs;
+    is $got, ":ENTER::LEAVE:foo:bar",       "\@_ in list ctx";
+
+    $got = "";
+    @x = dotopic;
+    is $got, ":ENTER::LEAVE:",              "\$_ in list ctx";
 }
 
 $got = "";
