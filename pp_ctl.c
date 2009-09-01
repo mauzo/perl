@@ -2358,6 +2358,7 @@ S_call_padblks(pTHX_ void *vp)
     struct call_padblk_args *args = (struct call_padblk_args *)vp;
     I32 i, cxix, gimme;
     CV *cv;
+    SV **oldmark, **oldsp;
 
     PERL_ARGS_ASSERT_CALL_PADBLKS;
 
@@ -2380,13 +2381,25 @@ S_call_padblks(pTHX_ void *vp)
     else
 	gimme = cxstack[cxix].blk_gimme;
 
+    oldmark = PL_stack_base + TOPMARK;
+    oldsp = SP;
+
     ENTER;
     PUSHSTACKi(PERLSI_PADBLK);
 
     for (i = 0; i <= AvFILL(args->av); i++) {
+	SV **sv;
+
 	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
+
 	PUSHMARK(SP);
-	call_sv(MUTABLE_SV(cv), gimme|G_DISCARD|G_NOARGS|G_EVAL);
+	EXTEND(SP, oldsp - oldmark);
+	for (sv = oldmark + 1; sv <= oldsp; sv++) {
+	    PUSHs(SvREFCNT_inc(*sv));
+	}
+	PUTBACK;
+
+	call_sv(MUTABLE_SV(cv), gimme|G_DISCARD|G_EVAL);
 
 	if (!(args->flags & OPpPADBLK_AFTER) && SvTRUE(ERRSV))
 	    break;
