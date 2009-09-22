@@ -236,6 +236,7 @@ static const char* const lex_state_names[] = {
 #define OPERATOR(retval) return (PL_expect = XTERM, PL_bufptr = s, REPORT(retval))
 #define AOPERATOR(retval) return ao((PL_expect = XTERM, PL_bufptr = s, REPORT(retval)))
 #define PREBLOCK(retval) return (PL_expect = XBLOCK,PL_bufptr = s, REPORT(retval))
+#define PREPADBLK(name) return (pl_yylval.opval = (OP*)newSVOP(OP_CONST, 0, newSVpvs(name)), PL_expect = XBLOCK, PL_bufptr = s, REPORT(PADBLK))
 #define PRETERMBLOCK(retval) return (PL_expect = XTERMBLOCK,PL_bufptr = s, REPORT(retval))
 #define PREREF(retval) return (PL_expect = XREF,PL_bufptr = s, REPORT(retval))
 #define TERM(retval) return (CLINE, PL_expect = XOPERATOR, PL_bufptr = s, REPORT(retval))
@@ -5859,8 +5860,6 @@ Perl_yylex(pTHX)
 	case KEY_INIT:
 	case KEY_END:
 	case KEY_SCOPECHECK:
-	case KEY_ENTER:
-	case KEY_LEAVE:
 	    if (PL_expect == XSTATE) {
 		s = PL_bufptr;
 		goto really_sub;
@@ -5881,6 +5880,16 @@ Perl_yylex(pTHX)
 		    orig_keyword = tmp;
 		goto reserved_word;
 	    }
+	    goto just_a_word;
+
+	case KEY_ENTER:
+	    if (PL_expect == XSTATE)
+		PREPADBLK("ENTER");
+	    goto just_a_word;
+
+	case KEY_LEAVE:
+	    if (PL_expect == XSTATE)
+		PREPADBLK("LEAVE");
 	    goto just_a_word;
 
 	case KEY_abs:

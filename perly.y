@@ -72,7 +72,7 @@
 %token <i_tkval> '{' '}' '[' ']' '-' '+' '$' '@' '%' '*' '&' ';'
 
 %token <opval> WORD METHOD FUNCMETH THING PMFUNC PRIVATEREF
-%token <opval> FUNC0SUB UNIOPSUB LSTOPSUB
+%token <opval> FUNC0SUB UNIOPSUB LSTOPSUB PADBLK
 %token <p_tkval> LABEL
 %token <i_tkval> FORMAT SUB ANONSUB PACKAGE USE
 %token <i_tkval> WHILE UNTIL IF UNLESS ELSE ELSIF CONTINUE FOR
@@ -99,6 +99,7 @@
 %type <opval> subattrlist myattrlist myattrterm myterm
 %type <opval> termbinop termunop anonymous termdo
 %type <opval> switch case
+%type <opval> padblk
 %type <p_tkval> label
 
 %nonassoc <i_tkval> PREC_LOW
@@ -494,6 +495,8 @@ decl	:	format
 			{ $$ = $1; }
 	|	use
 			{ $$ = $1; }
+        |       padblk
+                        { $$ = $1; }
 
     /* these two are only used by MAD */
 
@@ -561,6 +564,15 @@ subrout	:	SUB startsub subname proto subattrlist subbody
 			}
 	;
 
+padblk:         SUB padblk { $$ = $2; }
+      |         PADBLK startanonsub block
+                        { 
+                          SvREFCNT_inc_simple_void(PL_compcv);
+                          newATTRSUB($2, $1, NULL, NULL, $3);
+                          $$ = (OP*)NULL;
+                        }
+        ;
+
 startsub:	/* NULL */	/* start a regular subroutine scope */
 			{ $$ = start_subparse(FALSE, 0);
 			    SAVEFREESV(PL_compcv); }
@@ -581,12 +593,11 @@ startformsub:	/* NULL */	/* start a format subroutine scope */
 subname	:	WORD	{ const char *const name = SvPV_nolen_const(((SVOP*)$1)->op_sv);
 			  if (strEQ(name, "BEGIN") || strEQ(name, "END")
 			      || strEQ(name, "INIT") || strEQ(name, "CHECK")
-			      || strEQ(name, "UNITCHECK"))
+			      || strEQ(name, "UNITCHECK") ||
+                              (Perl_feature_is_enabled(aTHX_
+                                  STR_WITH_LEN("scopeblocks"))
+                               && strEQ(name, "SCOPECHECK")))
 			      CvSPECIAL_on(PL_compcv);
-                          if (FEATURE_IS_ENABLED("scopeblocks")
-                              && (strEQ(name, "SCOPECHECK")
-                              || strEQ(name, "ENTER") || strEQ(name, "LEAVE")))
-                              CvSPECIAL_on(PL_compcv);
 			  $$ = $1; }
 	;
 

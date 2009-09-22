@@ -2391,6 +2391,7 @@ S_call_padblks(pTHX_ void *vp)
 	SV **sv;
 
 	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
+	cv = cv_clone(cv);
 
 	PUSHMARK(SP);
 	EXTEND(SP, oldsp - oldmark);

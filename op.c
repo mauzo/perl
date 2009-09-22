@@ -5319,7 +5319,6 @@ S_process_padblks(pTHX_ AV *padblks, OP *o)
 	bool rev;
 
 	assert(SvTYPE(cv) == SVt_PVCV);
-	assert(CvSPECIAL(cv));
 
 	name = GvNAME(CvGV(cv));
 
