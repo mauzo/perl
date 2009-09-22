@@ -278,7 +278,7 @@ Deprecated.  Use C<GIMME_V> instead.
 /* Private for OP_ENTEREVAL */
 #define OPpEVAL_HAS_HH		2	/* Does it have a copy of %^H */
 
-/* Private for OP_SCOPE and OP_LEAVETRY */
+/* Private for OP_(SCOPE|LEAVE(EVAL|TRY)) */
 #define OPpSCOPE_LEAVE		2	/* need an extra LEAVE for padblks */
 
 /* Private for OP_PADBLK */

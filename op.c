@@ -7798,18 +7798,22 @@ Perl_ck_return(pTHX_ OP *o)
 OP *
 Perl_ck_scope(pTHX_ OP *o)
 {
-    OP *body;
+    OP *kid;
 
     PERL_ARGS_ASSERT_CK_SCOPE;
 
-    body = cLISTOPo->op_first;
-    if (body->op_type == OP_ENTERTRY)
-	body = body->op_sibling;
+    kid = cLISTOPo->op_first;
 
-    if (body->op_type == OP_PADBLK && 
-	body->op_private & OPpPADBLK_AFTER) {
+    if (kid->op_type == OP_ENTERTRY)
+	kid = kid->op_sibling;
+
+    if (kid->op_type == OP_LINESEQ)
+	kid = kLISTOP->op_first;
+
+    if (kid->op_type == OP_PADBLK && 
+	kid->op_private & OPpPADBLK_AFTER) {
 	o->op_private |= OPpSCOPE_LEAVE;
-	body->op_private |= OPpPADBLK_ENTER;
+	kid->op_private |= OPpPADBLK_ENTER;
     }
 
     return o;

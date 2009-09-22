@@ -656,7 +656,7 @@ if ($] >= 5.009) {
 }
 if ($] >= 5.011) {
     @{$priv{"padblk"}}{1,4} = ("AFTER", "ENTER");
-    $priv{$_}{2} = "LEAVE" for ("scope", "leavetry");
+    $priv{$_}{2} = "LEAVE" for ("scope", "leavetry", "leaveeval");
 }
 
 our %hints; # used to display each COP's op_hints values

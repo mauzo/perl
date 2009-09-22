@@ -1065,7 +1065,7 @@ require		require			ck_require	du%	S?
 dofile		do "file"		ck_fun		d1	S
 hintseval	eval hints		ck_svconst	s$
 entereval	eval "string"		ck_eval		d%	S
-leaveeval	eval "string" exit	ck_null		1	S
+leaveeval	eval "string" exit	ck_scope	1	S
 #evalonce	eval constant string	ck_null		d1	S
 entertry	eval {block}		ck_null		|	
 leavetry	eval {block} exit	ck_scope	@	

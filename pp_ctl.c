@@ -3830,6 +3830,9 @@ PP(pp_leaveeval)
     const U8 save_flags = PL_op -> op_flags;
     I32 optype;
 
+    if (PL_op->op_private & OPpSCOPE_LEAVE)
+	LEAVE;
+
     POPBLOCK(cx,newpm);
     POPEVAL(cx);
     retop = cx->blk_eval.retop;

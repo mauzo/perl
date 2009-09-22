@@ -1504,7 +1504,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* dofile */
 	MEMBER_TO_FPTR(Perl_ck_svconst),	/* hintseval */
 	MEMBER_TO_FPTR(Perl_ck_eval),	/* entereval */
-	MEMBER_TO_FPTR(Perl_ck_null),	/* leaveeval */
+	MEMBER_TO_FPTR(Perl_ck_scope),	/* leaveeval */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* entertry */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* leavetry */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* ghbyname */
