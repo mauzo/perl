@@ -2362,19 +2362,6 @@ S_call_padblks(pTHX_ void *vp)
 
     PERL_ARGS_ASSERT_CALL_PADBLKS;
 
-    if ((args->flags & (OPpPADBLK_AFTER|OPpPADBLK_IN_AFTER))
-	    == OPpPADBLK_AFTER) {
-	/* This is balanced by the LEAVE in pp_leavetry. It is necessary
-	 * to ensure the destructors are called *before* the eval scope
-	 * is torn down.
-	 */
-	if (args->flags & OPpPADBLK_ENTER)
-	    ENTER;
-	args->flags |= OPpPADBLK_IN_AFTER;
-	SAVEDESTRUCTOR_X(S_call_padblks, args);
-	return;
-    }
-
     cxix = dopoptosub(cxstack_ix);
     if (cxix < 0)
 	gimme = G_VOID;
@@ -2391,7 +2378,6 @@ S_call_padblks(pTHX_ void *vp)
 	SV **sv;
 
 	cv = MUTABLE_CV(AvARRAY(args->av)[i]);
-	cv = cv_clone(cv);
 
 	PUSHMARK(SP);
 	EXTEND(SP, oldsp - oldmark);
@@ -2410,6 +2396,8 @@ S_call_padblks(pTHX_ void *vp)
     SPAGAIN;
     LEAVE;
 
+    /* this was our own private copy of the list, so free it here */
+    SvREFCNT_dec(args->av);
     Safefree(args);
 
     if (SvTRUE(ERRSV))
@@ -2420,13 +2408,90 @@ PP(pp_padblk)
 {
     dVAR;
     struct call_padblk_args *args;
+    AV *av;
+    I32 i;
 
     Newx(args, 1, struct call_padblk_args);
 
-    args->av = MUTABLE_AV(PAD_SV(PL_op->op_targ));
+    av          = MUTABLE_AV(PAD_SV(PL_op->op_targ));
+    args->av    = newAV();
     args->flags = PL_op->op_private;
 
-    call_padblks(args);
+    /* we need to clone any closure prototypes now, before the variables
+     * they close over go out of scope */
+    for (i = 0; i <= AvFILL(av); i++) {
+	CV *cv, *outside;
+	AV *nameav, *stale;
+	I32 padix, depth;
+	SV **onames, **opad;
+
+	cv = MUTABLE_CV(AvARRAY(av)[i]);
+
+	/* if this isn't a closure proto, just pass it along */
+	if (CvCLONED(cv) || !CvCLONE(cv)) {
+	    SvREFCNT_inc(cv);
+	    av_push(args->av, MUTABLE_SV(cv));
+	    continue;
+	}
+
+	/* find all the lexicals we are about to close over, so they can
+	 * be temporarily introduced to avoid warnings */
+	stale = newAV();
+
+	outside = CvOUTSIDE(cv);
+	if (outside && CvCLONE(outside) && !CvCLONED(outside))
+	    outside = find_runcv(NULL);
+	depth   = CvDEPTH(outside);
+
+	assert(depth);
+	assert(CvPADLIST(outside));
+
+	nameav = MUTABLE_AV(AvARRAY(CvPADLIST(cv))[0]);
+	onames = AvARRAY(AvARRAY(CvPADLIST(outside))[0]);
+	opad   = AvARRAY(AvARRAY(CvPADLIST(outside))[depth]);
+
+	for (padix = 0; padix <= AvFILL(nameav); padix++) {
+	    SV *namesv = AvARRAY(nameav)[padix];
+	    SV *sv;
+
+	    /* we only care about lexicals from directly outside */
+	    if (!SvFAKE(namesv))
+		continue;
+	    if (SvFAKE(onames[PARENT_PAD_INDEX(namesv)]))
+		continue;
+
+	    sv = opad[PARENT_PAD_INDEX(namesv)];
+
+	    if (!SvPADSTALE(sv))
+		continue;
+
+	    SvPADSTALE_off(sv);
+	    SvREFCNT_inc(sv);
+	    av_push(stale, sv);
+	}
+
+	/* clone the closure now, so it captures the right lexicals */
+	av_push(args->av, MUTABLE_SV(cv_clone(cv)));
+
+	/* rescind the temporary introductions */
+	for (padix = 0; padix <= AvFILL(stale); padix++) {
+	    SvPADSTALE_on(AvARRAY(stale)[padix]);
+	}
+	SvREFCNT_dec(stale);
+    }
+
+    if (args->flags & OPpPADBLK_AFTER) {
+	/* This is balanced by the LEAVE in pp_leavetry. It is necessary
+	 * to ensure the destructors are called *before* the eval scope
+	 * is torn down.
+	 */
+	if (args->flags & OPpPADBLK_ENTER)
+	    ENTER;
+	SAVEDESTRUCTOR_X(S_call_padblks, args);
+    }
+    else {
+	call_padblks(args);
+    }
 
     return NORMAL;
 }
