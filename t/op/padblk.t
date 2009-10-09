@@ -7,11 +7,16 @@ BEGIN {
 }
 
 use strict;
+use warnings;
 use feature ":5.11";
 
-plan tests => 15*3 + 23;
+plan tests => 15*3 + 27;
 
-my $got;
+# avoid any confusion with lexicals
+use vars qw/$want $got @want @got/;
+
+my @warns;
+BEGIN { $SIG{__WARN__} = sub { push @warns, $_[0] } }
 
 {
     my @blocks = (
@@ -29,7 +34,7 @@ my $got;
         [default    => 'given (1) { default {*} }'      ],
         [try        => 'eval {*}'                       ],
         [eval       => 'eval q{*}'                      ],
-        ["sub"      => 'sub foo {*} foo'                ],
+        ["sub"      => 'no warnings "redefine"; sub foo {*} foo'],
     );
 
     for (@blocks) {
@@ -153,14 +158,8 @@ sub doargs {
     qw/foo bar/;
 }
 
-sub dotopic {
-    ENTER { $got .= ":ENTER:$_" }
-    LEAVE { $got .= ":LEAVE:$_" }
-    qw/foo bar/;
-}
-
 {
-    local ($", $_, @_) = qw/: a b c/;
+    local ($", @_) = qw/: a b c/;
     no warnings "uninitialized";
 
     $got = "";
@@ -168,36 +167,24 @@ sub dotopic {
     is $got, ":ENTER:VOID:LEAVE:VOID",      "padblks in void ctx";
 
     $got = "";
-    doargs;
-    is $got, ":ENTER::LEAVE:bar",           "\@_ in void ctx";
-
-    $got = "";
-    dotopic;
-    is $got, ":ENTER::LEAVE:",              "\$_ in void ctx";
+    doargs qw/ONE TWO/;
+    is $got, ":ENTER:ONE:TWO:LEAVE:bar",    "\@_ in void ctx";
 
     $got = "";
     my $x = doctx;
     is $got, ":ENTER:SCALAR:LEAVE:SCALAR",  "padblks in scalar ctx";
 
     $got = "";
-    $x = doargs;
-    is $got, ":ENTER::LEAVE:bar",           "\@_ in scalar ctx";
-
-    $got = "";
-    $x = dotopic;
-    is $got, ":ENTER::LEAVE:bar",           "\$_ in scalar ctx";
+    $x = doargs qw/ONE TWO/;
+    is $got, ":ENTER:ONE:TWO:LEAVE:bar",    "\@_ in scalar ctx";
 
     $got = "";
     my @x = doctx;
     is $got, ":ENTER:LIST:LEAVE:LIST",      "padblks in list ctx";
 
     $got = "";
-    @x = doargs;
-    is $got, ":ENTER::LEAVE:foo:bar",       "\@_ in list ctx";
-
-    $got = "";
-    @x = dotopic;
-    is $got, ":ENTER::LEAVE:",              "\$_ in list ctx";
+    @x = doargs qw/ONE TWO/;
+    is $got, ":ENTER:ONE:TWO:LEAVE:foo:bar", "\@_ in list ctx";
 }
 
 $got = "";
@@ -278,3 +265,61 @@ fresh_perl_is
     },
     ":leave2:leave1",
     undef, "LEAVE queue not aborted on exit";
+
+{
+    my $x;
+
+    @got = @want = ();
+
+    for (1..2) {
+        my $y;
+        ENTER { push @got, "".\$y }
+        push @want, "".\$y;
+    }
+
+    ok eq_array(\@got, \@want),         "ENTER captures lexicals";
+
+    @got = @want = ();
+    
+    for (1..2) {
+        my $y;
+        LEAVE { push @got, "".\$y }
+        push @want, "".\$y;
+    }
+
+    ok eq_array(\@got, \@want),         "LEAVE captures lexicals";
+
+    $got = "";
+
+    sub outer_lex {
+        ENTER { $got = "".\$x }
+    }
+    outer_lex;
+
+    is $got, "".\$x,                    "ENTER captures outer lexes";
+
+    @got = @want = ();
+
+    for (1..2) {
+        my $y;
+        sub { ENTER { push @got, "".\$x, "".\$y } }->();
+        push @want, "".\$x, "".\$y;
+    }
+
+    ok eq_array(\@got, \@want),         "ENTER in closure";
+}
+
+{
+    my $code = q{
+        no warnings "prototype";
+        BEGIN { *ENTER = sub (&) { print "sub" } }
+        ENTER { print "padblk" }
+    };
+
+    fresh_perl_is $code, "sub", undef,  "no padblks without 'feature'";
+    fresh_perl_is 'use feature "scopeblocks";' . $code, 
+        "padblk", undef,                "padblks with 'feature'";
+}
+
+ok !@warns, "no warnings"
+    or diag join "\n", @warns;
