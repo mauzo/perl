@@ -4635,6 +4635,14 @@ STATIC OP*	S_scalarboolean(pTHX_ OP *o)
 STATIC OP*	S_newDEFSVOP(pTHX)
 			__attribute__warn_unused_result__;
 
+STATIC OP*	S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
+			__attribute__warn_unused_result__
+			__attribute__nonnull__(pTHX_1)
+			__attribute__nonnull__(pTHX_2)
+			__attribute__nonnull__(pTHX_3);
+#define PERL_ARGS_ASSERT_NEWPADBLK	\
+	assert(name); assert(av); assert(next)
+
 STATIC OP*	S_search_const(pTHX_ OP *o)
 			__attribute__warn_unused_result__
 			__attribute__nonnull__(pTHX_1);

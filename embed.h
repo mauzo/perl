@@ -1261,6 +1261,7 @@
 #define modkids			S_modkids
 #define scalarboolean		S_scalarboolean
 #define newDEFSVOP		S_newDEFSVOP
+#define newPADBLK		S_newPADBLK
 #define search_const		S_search_const
 #define new_logop		S_new_logop
 #define simplify_sort		S_simplify_sort
@@ -3611,6 +3612,7 @@
 #define modkids(a,b)		S_modkids(aTHX_ a,b)
 #define scalarboolean(a)	S_scalarboolean(aTHX_ a)
 #define newDEFSVOP()		S_newDEFSVOP(aTHX)
+#define newPADBLK(a,b,c)	S_newPADBLK(aTHX_ a,b,c)
 #define search_const(a)		S_search_const(aTHX_ a)
 #define new_logop(a,b,c,d)	S_new_logop(aTHX_ a,b,c,d)
 #define simplify_sort(a)	S_simplify_sort(aTHX_ a)

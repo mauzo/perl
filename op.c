@@ -5303,7 +5303,9 @@ STATIC OP *
 S_process_padblks(pTHX_ AV *padblks, OP *o)
 {
     I32 i;
-    AV *scopecheckav = NULL;
+    AV  *scopecheckav	= NULL, 
+	*enterav	= NULL, 
+	*leaveav	= NULL;
 
     PERL_ARGS_ASSERT_PROCESS_PADBLKS;
 
@@ -5313,15 +5315,33 @@ S_process_padblks(pTHX_ AV *padblks, OP *o)
     for (i = 0; i <= AvFILL(padblks); i++) {
 	CV *cv = (CV *)AvARRAY(padblks)[i];
 	const char *name;
+	AV **avp;
+	bool rev;
 
 	assert(SvTYPE(cv) == SVt_PVCV);
 	assert(CvSPECIAL(cv));
 
 	name = GvNAME(CvGV(cv));
 
-	if (strEQ(name, "SCOPECHECK"))
-	    Perl_av_create_and_unshift_one(aTHX_ &scopecheckav,
-		SvREFCNT_inc(cv));
+	if (strEQ(name, "SCOPECHECK")) {
+	    avp = &scopecheckav;
+	    rev = 1;
+	}
+	else if (strEQ(name, "ENTER")) {
+	    avp = &enterav;
+	    rev = 0;
+	}
+	else if (strEQ(name, "LEAVE")) {
+	    avp = &leaveav;
+	    rev = 1;
+	}
+	else
+	    Perl_croak(aTHX_ "Invalid special block %s", name);
+
+	if (rev)
+	    Perl_av_create_and_unshift_one(aTHX_ avp, SvREFCNT_inc(cv));
+	else
+	    Perl_av_create_and_push(aTHX_ avp, SvREFCNT_inc(cv));
     }
 
     SvREFCNT_dec(padblks);
@@ -5339,6 +5359,41 @@ S_process_padblks(pTHX_ AV *padblks, OP *o)
 
 	SvREFCNT_dec(scopecheckav);
     }
+
+
+    if (enterav)
+	o = newPADBLK("&ENTER", enterav, o);
+    /* install LEAVE second, so that it runs first, so that the block
+     * still gets called if an ENTER calls die
+     */
+    if (leaveav)
+	o = newPADBLK("&LEAVE", leaveav, o);
+
+    return o;
+}
+
+STATIC OP *
+S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
+{
+    OP *o;
+    PADOFFSET padix;
+
+    PERL_ARGS_ASSERT_NEWPADBLK;
+
+    padix = pad_add_name(name, NULL, NULL, 0, SVpad_BLOCKS);
+    av_store(PL_comppad, padix, MUTABLE_SV(av));
+
+    NewOp(1101, o, 1, OP);
+    o->op_type = OP_PADBLK;
+    o->op_ppaddr = PL_ppaddr[OP_PADBLK];
+    o->op_flags = 0;
+    o->op_latefree = 0;
+    o->op_latefreed = 0;
+    o->op_attached = 0;
+    o->op_sibling = next;
+    o->op_targ = padix;
+
+    return o;
 }
 
 /*
