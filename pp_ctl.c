@@ -2362,18 +2362,14 @@ S_call_padblkav(pTHX_ void *av)
 PP(pp_padblk)
 {
     dVAR;
-    const char *name;
     AV *av;
 
-    name = SvPVX(AvARRAY(PL_comppad_name)[PL_op->op_targ]);
     av = MUTABLE_AV(PAD_SV(PL_op->op_targ));
 
-    if (strEQ(name, "&ENTER"))
-	call_list(PL_scopestack_ix, av);
-    else if (strEQ(name, "&LEAVE"))
+    if (PL_op->op_private & OPpPADBLK_AFTER)
 	SAVEDESTRUCTOR_X(S_call_padblkav, (void*)av);
     else
-	Perl_croak(aTHX_ "panic: invalid padblk %s", name);
+	call_list(PL_scopestack_ix, av);
 
     return NORMAL;
 }

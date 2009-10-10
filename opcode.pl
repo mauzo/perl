@@ -1116,6 +1116,6 @@ lock		lock			ck_rfun		s%	R
 once		once			ck_null		|	
 
 # For pad block support
-padblk		padblk			ck_null		d0
+padblk		padblk			ck_padblk	d0
 
 custom		unknown custom operator		ck_null		0

@@ -5393,7 +5393,7 @@ S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
     o->op_sibling = next;
     o->op_targ = padix;
 
-    return o;
+    return CHECKOP(OP_PADBLK, o);
 }
 
 /*
@@ -7372,6 +7372,21 @@ Perl_ck_defined(pTHX_ OP *o)		/* 19990527 MJD */
 	}
     }
     return ck_rfun(o);
+}
+
+OP *
+Perl_ck_padblk(pTHX_ OP *o)
+{
+    const char *name;
+
+    PERL_ARGS_ASSERT_CK_PADBLK;
+
+    name = PAD_COMPNAME_PV(o->op_targ);
+
+    if (strEQ(name, "&LEAVE"))
+	o->op_private |= OPpPADBLK_AFTER;
+
+    return o;
 }
 
 OP *

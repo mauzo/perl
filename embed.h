@@ -1231,6 +1231,7 @@
 #define ck_method		Perl_ck_method
 #define ck_null			Perl_ck_null
 #define ck_open			Perl_ck_open
+#define ck_padblk		Perl_ck_padblk
 #define ck_readline		Perl_ck_readline
 #define ck_repeat		Perl_ck_repeat
 #define ck_require		Perl_ck_require
@@ -2002,6 +2003,7 @@
 #define ck_method		Perl_ck_method
 #define ck_null			Perl_ck_null
 #define ck_open			Perl_ck_open
+#define ck_padblk		Perl_ck_padblk
 #define ck_readline		Perl_ck_readline
 #define ck_repeat		Perl_ck_repeat
 #define ck_require		Perl_ck_require
@@ -3577,6 +3579,7 @@
 #define ck_method(a)		Perl_ck_method(aTHX_ a)
 #define ck_null(a)		Perl_ck_null(aTHX_ a)
 #define ck_open(a)		Perl_ck_open(aTHX_ a)
+#define ck_padblk(a)		Perl_ck_padblk(aTHX_ a)
 #define ck_readline(a)		Perl_ck_readline(aTHX_ a)
 #define ck_repeat(a)		Perl_ck_repeat(aTHX_ a)
 #define ck_require(a)		Perl_ck_require(aTHX_ a)
@@ -4369,6 +4372,7 @@
 #define ck_method(a)		Perl_ck_method(aTHX_ a)
 #define ck_null(a)		Perl_ck_null(aTHX_ a)
 #define ck_open(a)		Perl_ck_open(aTHX_ a)
+#define ck_padblk(a)		Perl_ck_padblk(aTHX_ a)
 #define ck_readline(a)		Perl_ck_readline(aTHX_ a)
 #define ck_repeat(a)		Perl_ck_repeat(aTHX_ a)
 #define ck_require(a)		Perl_ck_require(aTHX_ a)

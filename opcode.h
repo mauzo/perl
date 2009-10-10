@@ -1541,7 +1541,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* syscall */
 	MEMBER_TO_FPTR(Perl_ck_rfun),	/* lock */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* once */
-	MEMBER_TO_FPTR(Perl_ck_null),	/* padblk */
+	MEMBER_TO_FPTR(Perl_ck_padblk),	/* padblk */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* custom */
 }
 #endif
