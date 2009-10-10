@@ -978,7 +978,7 @@ EXT Perl_ppaddr_t PL_ppaddr[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_pp_unstack),
 	MEMBER_TO_FPTR(Perl_pp_enter),
 	MEMBER_TO_FPTR(Perl_pp_leave),
-	MEMBER_TO_FPTR(Perl_pp_null),	/* Perl_pp_scope */
+	MEMBER_TO_FPTR(Perl_pp_scope),
 	MEMBER_TO_FPTR(Perl_pp_enteriter),
 	MEMBER_TO_FPTR(Perl_pp_iter),
 	MEMBER_TO_FPTR(Perl_pp_enterloop),
@@ -1362,7 +1362,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* unstack */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* enter */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* leave */
-	MEMBER_TO_FPTR(Perl_ck_null),	/* scope */
+	MEMBER_TO_FPTR(Perl_ck_scope),	/* scope */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* enteriter */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* iter */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* enterloop */
@@ -1506,7 +1506,7 @@ EXT Perl_check_t PL_check[] /* or perlvars.h */
 	MEMBER_TO_FPTR(Perl_ck_eval),	/* entereval */
 	MEMBER_TO_FPTR(Perl_ck_scope),	/* leaveeval */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* entertry */
-	MEMBER_TO_FPTR(Perl_ck_null),	/* leavetry */
+	MEMBER_TO_FPTR(Perl_ck_scope),	/* leavetry */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* ghbyname */
 	MEMBER_TO_FPTR(Perl_ck_fun),	/* ghbyaddr */
 	MEMBER_TO_FPTR(Perl_ck_null),	/* ghostent */

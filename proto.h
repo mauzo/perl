@@ -4544,6 +4544,12 @@ PERL_CALLCONV OP*	Perl_ck_sassign(pTHX_ OP *o)
 #define PERL_ARGS_ASSERT_CK_SASSIGN	\
 	assert(o)
 
+PERL_CALLCONV OP*	Perl_ck_scope(pTHX_ OP *o)
+			__attribute__warn_unused_result__
+			__attribute__nonnull__(pTHX_1);
+#define PERL_ARGS_ASSERT_CK_SCOPE	\
+	assert(o)
+
 PERL_CALLCONV OP*	Perl_ck_select(pTHX_ OP *o)
 			__attribute__warn_unused_result__
 			__attribute__nonnull__(pTHX_1);
@@ -4651,13 +4657,13 @@ STATIC OP*	S_scalarboolean(pTHX_ OP *o)
 STATIC OP*	S_newDEFSVOP(pTHX)
 			__attribute__warn_unused_result__;
 
-STATIC OP*	S_newPADBLK(pTHX_ const char *name, AV *av, OP *next)
+STATIC OP*	S_newPADBLK(pTHX_ const char *name, AV *av, OP *o)
 			__attribute__warn_unused_result__
 			__attribute__nonnull__(pTHX_1)
 			__attribute__nonnull__(pTHX_2)
 			__attribute__nonnull__(pTHX_3);
 #define PERL_ARGS_ASSERT_NEWPADBLK	\
-	assert(name); assert(av); assert(next)
+	assert(name); assert(av); assert(o)
 
 STATIC OP*	S_search_const(pTHX_ OP *o)
 			__attribute__warn_unused_result__

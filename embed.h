@@ -1240,6 +1240,7 @@
 #define ck_rfun			Perl_ck_rfun
 #define ck_rvconst		Perl_ck_rvconst
 #define ck_sassign		Perl_ck_sassign
+#define ck_scope		Perl_ck_scope
 #define ck_select		Perl_ck_select
 #define ck_shift		Perl_ck_shift
 #define ck_sort			Perl_ck_sort
@@ -2012,6 +2013,7 @@
 #define ck_rfun			Perl_ck_rfun
 #define ck_rvconst		Perl_ck_rvconst
 #define ck_sassign		Perl_ck_sassign
+#define ck_scope		Perl_ck_scope
 #define ck_select		Perl_ck_select
 #define ck_shift		Perl_ck_shift
 #define ck_smartmatch		Perl_ck_smartmatch
@@ -3589,6 +3591,7 @@
 #define ck_rfun(a)		Perl_ck_rfun(aTHX_ a)
 #define ck_rvconst(a)		Perl_ck_rvconst(aTHX_ a)
 #define ck_sassign(a)		Perl_ck_sassign(aTHX_ a)
+#define ck_scope(a)		Perl_ck_scope(aTHX_ a)
 #define ck_select(a)		Perl_ck_select(aTHX_ a)
 #define ck_shift(a)		Perl_ck_shift(aTHX_ a)
 #define ck_sort(a)		Perl_ck_sort(aTHX_ a)
@@ -4382,6 +4385,7 @@
 #define ck_rfun(a)		Perl_ck_rfun(aTHX_ a)
 #define ck_rvconst(a)		Perl_ck_rvconst(aTHX_ a)
 #define ck_sassign(a)		Perl_ck_sassign(aTHX_ a)
+#define ck_scope(a)		Perl_ck_scope(aTHX_ a)
 #define ck_select(a)		Perl_ck_select(aTHX_ a)
 #define ck_shift(a)		Perl_ck_shift(aTHX_ a)
 #define ck_smartmatch(a)	Perl_ck_smartmatch(aTHX_ a)
