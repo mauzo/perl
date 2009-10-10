@@ -655,7 +655,7 @@ if ($] >= 5.009) {
     for ("mapwhile", "mapstart", "grepwhile", "grepstart");
 }
 if ($] >= 5.011) {
-    @{$priv{"padblk"}}{1,4} = ("AFTER", "ENTER");
+    @{$priv{"padblk"}}{1,2} = ("AFTER", "ENTER");
     $priv{$_}{2} = "LEAVE" for ("scope", "leavetry", "leaveeval");
 }
 

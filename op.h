@@ -283,8 +283,7 @@ Deprecated.  Use C<GIMME_V> instead.
 
 /* Private for OP_PADBLK */
 #define OPpPADBLK_AFTER		1	/* Run at end of scope, not now */
-#define OPpPADBLK_IN_AFTER	2	/* Internal to call_padblks */
-#define OPpPADBLK_ENTER		4	/* do an extra ENTER */
+#define OPpPADBLK_ENTER		2	/* do an extra ENTER */
     
 struct op {
     BASEOP
