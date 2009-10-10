@@ -5335,7 +5335,7 @@ S_process_padblks(pTHX_ AV *padblks, OP *o)
 	    rev = 1;
 	}
 	else
-	    Perl_croak(aTHX_ "Invalid special block %s", name);
+	    Perl_croak(aTHX_ "panic: invalid padblk %s", name);
 
 	if (rev)
 	    Perl_av_create_and_unshift_one(aTHX_ avp, SvREFCNT_inc(cv));
