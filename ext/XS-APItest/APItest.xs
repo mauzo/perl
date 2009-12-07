@@ -269,16 +269,11 @@ blockhook_pre_end(pTHX_ OP **o)
 
     /* if we hit the end of a scope we missed the start of, we need to
      * unconditionally clear @CSC */
-    if (GvAV(MY_CXT.cscgv) == MY_CXT.cscav && MY_CXT.cscav)
+    if (GvAV(MY_CXT.cscgv) == MY_CXT.cscav && MY_CXT.cscav) {
         av_clear(MY_CXT.cscav);
+    }
 
 }
-
-STATIC struct block_hooks my_block_hooks = {
-    blockhook_start,
-    blockhook_pre_end,
-    NULL
-};
 
 #include "const-c.inc"
 
@@ -593,6 +588,7 @@ PROTOTYPES: DISABLE
 
 BOOT:
 {
+    BHK *bhk;
     MY_CXT_INIT;
 
     MY_CXT.i  = 99;
@@ -601,9 +597,13 @@ BOOT:
         GV_ADD, SVt_PVAV);
     MY_CXT.cscav = GvAV(MY_CXT.cscgv);
 
+    Newxz(bhk, 1, BHK);
+    BhkENTRY_set(bhk, start, blockhook_start);
+    BhkENTRY_set(bhk, pre_end, blockhook_pre_end);
+
     if (!PL_blockhooks)
         PL_blockhooks = newAV();
-    av_push(PL_blockhooks, newSViv(PTR2IV(&my_block_hooks))); 
+    av_push(PL_blockhooks, newSViv(PTR2IV(bhk))); 
 }                              
 
 void
