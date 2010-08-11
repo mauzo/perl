@@ -9,7 +9,6 @@
 	 (SvFLAGS(sv) & (SVf_IOK|SVf_NOK|SVf_POK|SVp_IOK|SVp_NOK|SVp_POK)))
 
 static SV *hintkey_rpn_sv, *hintkey_calcrpn_sv, *hintkey_stufftest_sv;
-static int (*next_keyword_plugin)(pTHX_ char *, STRLEN, OP **);
 
 /* low-level parser helpers */
 
@@ -226,8 +225,7 @@ static int my_keyword_plugin(pTHX_
 		*op_ptr = parse_keyword_stufftest();
 		return KEYWORD_PLUGIN_STMT;
 	} else {
-		return next_keyword_plugin(aTHX_
-				keyword_ptr, keyword_len, op_ptr);
+		return KEYWORD_PLUGIN_DECLINE;
 	}
 }
 
@@ -238,8 +236,7 @@ BOOT:
 	hintkey_calcrpn_sv = newSVpvs_share("XS::APItest::KeywordRPN/calcrpn");
 	hintkey_stufftest_sv =
 		newSVpvs_share("XS::APItest::KeywordRPN/stufftest");
-	next_keyword_plugin = PL_keyword_plugin;
-	PL_keyword_plugin = my_keyword_plugin;
+        Perl_keyword_plugin_register(aTHX_ my_keyword_plugin);
 
 void
 import(SV *classname, ...)

@@ -74,6 +74,7 @@
 %token <opval> WORD METHOD FUNCMETH THING PMFUNC PRIVATEREF
 %token <opval> FUNC0SUB UNIOPSUB LSTOPSUB
 %token <opval> PLUGEXPR PLUGSTMT PLUGBLOCK PLUGCOND
+%token <ival> PLUGWHICH
 %token <p_tkval> LABEL
 %token <i_tkval> FORMAT SUB ANONSUB PACKAGE USE
 %token <i_tkval> WHILE UNTIL IF UNLESS ELSE ELSIF CONTINUE FOR
@@ -260,10 +261,10 @@ plugstmt:       PLUGSTMT
                         { $$ = $2; }
         ;
 
-plugpart:      PLUGBLOCK block
-                        { call_keyword_plugin(0, $1, $2); $$ = 0; }
-        |      PLUGCOND '(' expr ')'
-                        { call_keyword_plugin(0, $1, $3); $$ = 0; }
+plugpart:      PLUGBLOCK PLUGWHICH block
+                        { keyword_plugin($2, 0, $1, $3); $$ = 0; }
+        |      PLUGCOND PLUGWHICH '(' expr ')'
+                        { keyword_plugin($2, 0, $1, $4); $$ = 0; }
         ;
 
 /* An expression which may have a side-effect */

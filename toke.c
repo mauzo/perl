@@ -6126,15 +6126,18 @@ Perl_yylex(pTHX)
 	}
 
 	/* Check for plugged-in keyword */
-	{
-	    int result;
+	if (PL_keyword_plugins) {
+	    I32 i;
 	    char *saved_bufptr = PL_bufptr;
-	    PL_bufptr = s;
-	    result = call_keyword_plugin(len, NULL, NULL);
-	    s = PL_bufptr;
-	    if (result)
-		return REPORT(result);
-	    PL_bufptr = saved_bufptr;
+	    int result;
+	    for (i = av_len(PL_keyword_plugins); i >= 0; i--) {
+		PL_bufptr = s;
+		result = keyword_plugin(i, len, NULL, NULL);
+		s = PL_bufptr;
+		if (result)
+		    return REPORT(result);
+		PL_bufptr = saved_bufptr;
+	    }
 	}
 
 	/* Check for built-in keyword */
@@ -13903,15 +13906,33 @@ Perl_scan_vstring(pTHX_ const char *s, const char *const e, SV *sv)
 }
 
 int
-Perl_call_keyword_plugin(pTHX_ STRLEN len, OP *o, OP *expr)
+Perl_keyword_plugin(pTHX_ I32 which, STRLEN len, OP *o, OP *expr)
 {
-    OP *os[2];
+    OP *ops[2];
     int result, tk;
+    SV *sv;
+    Perl_keyword_plugin_t cb;
 
-    os[0] = o;
-    os[1] = expr;
-    result = CALL_FPTR(PL_keyword_plugin)
-			(aTHX_ len ? PL_tokenbuf : NULL, len, os);
+    /* This gets called in two places. If expr is NULL, then we are
+     * being called from toke.c; len is valid and is the length of
+     * PL_tokenbuf. If expr is NN, we are being called from perly.y and
+     * should force_next the token instead of returning it.
+     */
+
+    /* The plugin gets passed an OP**. If this is a 'continued' call, it
+     * points to a two-element array. The first is the OP* returned from
+     * the first call, and should be used to return an OP* from this
+     * call; the second is the block or expr perly.y has built for us.
+     */
+    ops[0] = o;
+    ops[1] = expr;
+
+    assert(which <= av_len(PL_keyword_plugins));
+    sv = AvARRAY(PL_keyword_plugins)[which];
+    assert(SvIOK(sv));
+    cb = INT2PTR(Perl_keyword_plugin_t, SvIVX(sv));
+
+    result = CALL_FPTR(cb)(aTHX_ expr ? NULL : PL_tokenbuf, len, ops);
     if (result == KEYWORD_PLUGIN_DECLINE) {
 	return 0;
     } else if (result == KEYWORD_PLUGIN_STMT) {
@@ -13927,21 +13948,43 @@ Perl_call_keyword_plugin(pTHX_ STRLEN len, OP *o, OP *expr)
 	PL_expect = XTERM;
 	tk = PLUGCOND;
     } else {
-	Perl_croak(aTHX_ "Bad plugin affecting keyword '%s'",
-				len ? PL_tokenbuf : "");
+	if (expr)
+	    Perl_croak(aTHX_ "Bad keyword plugin continuation");
+	else
+	    Perl_croak(aTHX_ "Bad plugin affecting keyword '%s'",
+				PL_tokenbuf);
     }
+
+    /* If this is BLOCK or COND, perly.y needs to know which plugin this
+     * was so it can call it again. Insert a fake token to hold that
+     * value.
+     */
+    if (tk == PLUGBLOCK || tk == PLUGCOND) {
+	start_force(PL_curforce);
+	NEXTVAL_NEXTTOKE.ival = which;
+	force_next(PLUGWHICH);
+    }
+
     if (expr) {
 	/* this is a callback from perly.y */
 	start_force(PL_curforce);
-	NEXTVAL_NEXTTOKE.opval = os[0];
+	NEXTVAL_NEXTTOKE.opval = ops[0];
 	force_next(tk);
 	return 0;
     }
     else {
-	pl_yylval.opval = os[0];
+	pl_yylval.opval = ops[0];
 	CLINE;
 	return tk;
     }
+}
+
+void
+Perl_keyword_plugin_register(pTHX_ Perl_keyword_plugin_t cb)
+{
+    PERL_ARGS_ASSERT_KEYWORD_PLUGIN_REGISTER;
+    Perl_av_create_and_push(aTHX_ &PL_keyword_plugins, 
+	newSViv(PTR2IV(cb)));
 }
 
 int

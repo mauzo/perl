@@ -240,4 +240,3 @@ the Perl core) will normally return C<KEYWORD_PLUGIN_DECLINE>.
 =cut
 */
 
-PERLVARI(Gkeyword_plugin, Perl_keyword_plugin_t, MEMBER_TO_FPTR(Perl_keyword_plugin_standard))
