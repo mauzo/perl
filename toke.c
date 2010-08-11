@@ -6127,29 +6127,14 @@ Perl_yylex(pTHX)
 
 	/* Check for plugged-in keyword */
 	{
-	    OP *o;
 	    int result;
 	    char *saved_bufptr = PL_bufptr;
 	    PL_bufptr = s;
-	    result = CALL_FPTR(PL_keyword_plugin)(aTHX_ PL_tokenbuf, len, &o);
+	    result = call_keyword_plugin(len, NULL, NULL);
 	    s = PL_bufptr;
-	    if (result == KEYWORD_PLUGIN_DECLINE) {
-		/* not a plugged-in keyword */
-		PL_bufptr = saved_bufptr;
-	    } else if (result == KEYWORD_PLUGIN_STMT) {
-		pl_yylval.opval = o;
-		CLINE;
-		PL_expect = XSTATE;
-		return REPORT(PLUGSTMT);
-	    } else if (result == KEYWORD_PLUGIN_EXPR) {
-		pl_yylval.opval = o;
-		CLINE;
-		PL_expect = XOPERATOR;
-		return REPORT(PLUGEXPR);
-	    } else {
-		Perl_croak(aTHX_ "Bad plugin affecting keyword '%s'",
-					PL_tokenbuf);
-	    }
+	    if (result)
+		return REPORT(result);
+	    PL_bufptr = saved_bufptr;
 	}
 
 	/* Check for built-in keyword */
@@ -13915,6 +13900,48 @@ Perl_scan_vstring(pTHX_ const char *s, const char *const e, SV *sv)
 	SvRMAGICAL_on(sv);
     }
     return (char *)s;
+}
+
+int
+Perl_call_keyword_plugin(pTHX_ STRLEN len, OP *o, OP *expr)
+{
+    OP *os[2];
+    int result, tk;
+
+    os[0] = o;
+    os[1] = expr;
+    result = CALL_FPTR(PL_keyword_plugin)
+			(aTHX_ len ? PL_tokenbuf : NULL, len, os);
+    if (result == KEYWORD_PLUGIN_DECLINE) {
+	return 0;
+    } else if (result == KEYWORD_PLUGIN_STMT) {
+	PL_expect = XSTATE;
+	tk = PLUGSTMT;
+    } else if (result == KEYWORD_PLUGIN_EXPR) {
+	PL_expect = XOPERATOR;
+	tk = PLUGEXPR;
+    } else if (result == KEYWORD_PLUGIN_BLOCK) {
+	PL_expect = XBLOCK;
+	tk = PLUGBLOCK;
+    } else if (result == KEYWORD_PLUGIN_COND) {
+	PL_expect = XTERM;
+	tk = PLUGCOND;
+    } else {
+	Perl_croak(aTHX_ "Bad plugin affecting keyword '%s'",
+				len ? PL_tokenbuf : "");
+    }
+    if (expr) {
+	/* this is a callback from perly.y */
+	start_force(PL_curforce);
+	NEXTVAL_NEXTTOKE.opval = os[0];
+	force_next(tk);
+	return 0;
+    }
+    else {
+	pl_yylval.opval = os[0];
+	CLINE;
+	return tk;
+    }
 }
 
 int

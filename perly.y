@@ -73,7 +73,7 @@
 
 %token <opval> WORD METHOD FUNCMETH THING PMFUNC PRIVATEREF
 %token <opval> FUNC0SUB UNIOPSUB LSTOPSUB
-%token <opval> PLUGEXPR PLUGSTMT
+%token <opval> PLUGEXPR PLUGSTMT PLUGBLOCK PLUGCOND
 %token <p_tkval> LABEL
 %token <i_tkval> FORMAT SUB ANONSUB PACKAGE USE
 %token <i_tkval> WHILE UNTIL IF UNLESS ELSE ELSIF CONTINUE FOR
@@ -89,6 +89,7 @@
 %type <ival>  startsub startanonsub startformsub
 /* FIXME for MAD - are these two ival? */
 %type <ival> mydefsv mintro
+%type <ival> plugpart
 
 %type <opval> decl format subrout mysubrout package use peg
 
@@ -100,6 +101,7 @@
 %type <opval> subattrlist myattrlist myattrterm myterm
 %type <opval> termbinop termunop anonymous termdo
 %type <opval> switch case
+%type <opval> plugstmt
 %type <p_tkval> label
 
 %nonassoc <i_tkval> PREC_LOW
@@ -247,9 +249,22 @@ line	:	label cond
 				 newWHILEOP(0, 1, (LOOP*)(OP*)NULL,
 					    NOLINE, (OP*)NULL, $1,
 					    (OP*)NULL, 0)); }
-	|	label PLUGSTMT
-			{ $$ = newSTATEOP(0, PVAL($1), $2); }
+        |       label plugstmt
+                        { $$ = newSTATEOP(0, PVAL($1), $2); }
 	;
+
+
+plugstmt:       PLUGSTMT
+                        { $$ = $1; }
+        |       plugpart plugstmt
+                        { $$ = $2; }
+        ;
+
+plugpart:      PLUGBLOCK block
+                        { call_keyword_plugin(0, $1, $2); $$ = 0; }
+        |      PLUGCOND '(' expr ')'
+                        { call_keyword_plugin(0, $1, $3); $$ = 0; }
+        ;
 
 /* An expression which may have a side-effect */
 sideff	:	error

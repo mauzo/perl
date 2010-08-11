@@ -4875,6 +4875,8 @@ typedef int (CPERLscope(*Perl_keyword_plugin_t))(pTHX_ char*, STRLEN, OP**);
 #define KEYWORD_PLUGIN_DECLINE 0
 #define KEYWORD_PLUGIN_STMT    1
 #define KEYWORD_PLUGIN_EXPR    2
+#define KEYWORD_PLUGIN_BLOCK   3
+#define KEYWORD_PLUGIN_COND    4
 
 /* Interpreter exitlist entry */
 typedef struct exitlistentry {

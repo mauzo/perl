@@ -219,6 +219,7 @@ Aodp	|void	|blockhook_register |NN BHK *hk
 p	|void	|boot_core_UNIVERSAL
 : Used in perl.c
 p	|void	|boot_core_PerlIO
+p	|int	|call_keyword_plugin|STRLEN len|NULLOK OP *o|NULLOK OP *expr
 Ap	|void	|call_list	|I32 oldscope|NN AV *paramList
 : Used in serveral source files
 pR	|bool	|cando		|Mode_t mode|bool effective|NN const Stat_t* statbufp
