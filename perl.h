@@ -2413,6 +2413,7 @@ typedef struct pvop PVOP;
 typedef struct loop LOOP;
 
 typedef struct block_hooks BHK;
+typedef struct err_hooks EHK;
 
 typedef struct interpreter PerlInterpreter;
 

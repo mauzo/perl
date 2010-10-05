@@ -394,6 +394,7 @@ Ap	|void	|dump_packsubs	|NN const HV* stash
 p	|void	|dump_packsubs_perl	|NN const HV* stash|bool justperl
 Ap	|void	|dump_sub	|NN const GV* gv
 p	|void	|dump_sub_perl	|NN const GV* gv|bool justperl
+Aodp	|void	|errhook_register |NN EHK *hk
 Apd	|void	|fbm_compile	|NN SV* sv|U32 flags
 ApdR	|char*	|fbm_instr	|NN unsigned char* big|NN unsigned char* bigend \
 				|NN SV* littlestr|U32 flags

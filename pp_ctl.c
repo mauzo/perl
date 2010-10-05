@@ -3210,6 +3210,7 @@ S_doeval(pTHX_ int gimme, OP** startop, CV* outside, U32 seq)
 	CLEAR_ERRSV();
 
     CALL_BLOCK_HOOKS(eval, saveop);
+    CALL_ERR_HOOKS(ehk_eval, saveop);
 
     /* note that yyparse() may raise an exception, e.g. C<BEGIN{die}>,
      * so honour CATCH_GET and trap it here if necessary */
@@ -4070,6 +4071,9 @@ Perl_create_eval_scope(pTHX_ U32 flags)
     if (flags & G_FAKINGEVAL) {
 	PL_eval_root = PL_op; /* Only needed so that goto works right. */
     }
+
+    CALL_ERR_HOOKS(ehk_eval, PL_op);
+
     return cx;
 }
     

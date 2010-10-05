@@ -153,6 +153,95 @@ typedef struct jmpenv JMPENV;
     } STMT_END
 
 
+/*
+=head1 Error-handling hooks
+
+=for apidoc m|U32|EhkFLAGS|EHK *hk
+Return the EHK's flags.
+
+=for apidoc m|void *|EhkENTRY|EHK *hk|which
+Return an entry from the EHK structure. I<which> is a preprocessor token
+indicating which entry to return. If the appropriate flag is not set
+this will return NULL. The type of the return value depends on which
+entry you ask for.
+
+=for apidoc Am|void|EhkENTRY_set|EHK *hk|which|void *ptr
+Set an entry in the EHK structure, and set the flags to indicate it is
+valid. I<which> is a preprocessing token indicating which entry to set.
+The type of I<ptr> depends on the entry.
+
+=for apidoc Am|void|EhkDISABLE|EHK *hk|which
+Temporarily disable an entry in this EHK structure, by clearing the
+appropriate flag. I<which> is a preprocessor token indicating which
+entry to disable.
+
+=for apidoc Am|void|EhkENABLE|EHK *hk|which
+Re-enable an entry in this EHK structure, by setting the appropriate
+flag. I<which> is a preprocessor token indicating which entry to enable.
+This will assert (under -DDEBUGGING) if the entry doesn't contain a valid
+pointer.
+
+=for apidoc m|void|CALL_ERR_HOOKS|which|arg
+Call all the registered block hooks for type I<which>. I<which> is a
+preprocessing token; the type of I<arg> depends on I<which>.
+
+=cut
+*/
+
+struct err_hooks {
+    U32	    ehk_flags;
+    void    (*ehk_eval)		(pTHX_ OP *const saveop);
+    void    (*ehk_die)		(pTHX_ SV **ex);
+    void    (*ehk_warn)		(pTHX_ SV **msg);
+};
+
+#define EhkFLAGS(hk)		((hk)->ehk_flags)
+
+#define EHKf_ehk_eval	    0x01
+#define EHKf_ehk_die	    0x02
+#define EHKf_ehk_warn	    0x04
+
+#define EhkENTRY(hk, which) \
+    ((EhkFLAGS(hk) & EHKf_ ## which) ? ((hk)->which) : NULL)
+
+#define EhkENABLE(hk, which) \
+    STMT_START { \
+	EhkFLAGS(hk) |= EHKf_ ## which; \
+	assert(EhkENTRY(hk, which)); \
+    } STMT_END
+
+#define EhkDISABLE(hk, which) \
+    STMT_START { \
+	EhkFLAGS(hk) &= ~(EHKf_ ## which); \
+    } STMT_END
+
+#define EhkENTRY_set(hk, which, ptr) \
+    STMT_START { \
+	(hk)->which = ptr; \
+	EhkENABLE(hk, which); \
+    } STMT_END
+
+#define CALL_ERR_HOOKS(which, arg) \
+    STMT_START { \
+	if (PL_errhooks) { \
+	    I32 i; \
+	    for (i = av_len(PL_errhooks); i >= 0; i--) { \
+		SV *sv = AvARRAY(PL_errhooks)[i]; \
+		EHK *hk; \
+		\
+		assert(SvIOK(sv)); \
+		if (SvUOK(sv)) \
+		    hk = INT2PTR(EHK *, SvUVX(sv)); \
+		else \
+		    hk = INT2PTR(EHK *, SvIVX(sv)); \
+		\
+		if (EhkENTRY(hk, which)) \
+		    EhkENTRY(hk, which)(aTHX_ arg); \
+	    } \
+	} \
+    } STMT_END
+
+
 #include "mydtrace.h"
 
 struct cop {

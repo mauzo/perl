@@ -1456,6 +1456,11 @@ S_invoke_exception_hook(pTHX_ SV *ex, bool warn)
     /* sv_2cv might call Perl_croak() or Perl_warner() */
     SV * const oldhook = *hook;
 
+    if (warn)
+	CALL_ERR_HOOKS(ehk_warn, &ex);
+    else
+	CALL_ERR_HOOKS(ehk_die, &ex);
+
     if (!oldhook)
 	return FALSE;
 
@@ -1904,6 +1909,25 @@ Perl_new_warnings_bitfield(pTHX_ STRLEN *buffer, const char *const bits,
     buffer[0] = size;
     Copy(bits, (buffer + 1), size, char);
     return buffer;
+}
+
+/*
+=head1 Error-handling hooks
+
+=for apidoc Ao||errhook_register
+
+Register a set of hooks into the exception-handling system.
+See L<perlguts/"Error-handling hooks">.
+
+=cut
+*/
+
+void
+Perl_errhook_register(pTHX_ EHK *hk)
+{
+    PERL_ARGS_ASSERT_ERRHOOK_REGISTER;
+
+    Perl_av_create_and_push(aTHX_ &PL_errhooks, newSViv(PTR2IV(hk)));
 }
 
 /* since we've already done strlen() for both nam and val
