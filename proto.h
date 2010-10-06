@@ -861,6 +861,11 @@ PERL_CALLCONV void	Perl_emulate_cop_io(pTHX_ const COP *const c, SV *const sv)
 #define PERL_ARGS_ASSERT_EMULATE_COP_IO	\
 	assert(c); assert(sv)
 
+PERL_CALLCONV void	Perl_errhook_register(pTHX_ EHK *hk)
+			__attribute__nonnull__(pTHX_1);
+#define PERL_ARGS_ASSERT_ERRHOOK_REGISTER	\
+	assert(hk)
+
 PERL_CALLCONV SV*	Perl_eval_pv(pTHX_ const char* p, I32 croak_on_error)
 			__attribute__nonnull__(pTHX_1);
 #define PERL_ARGS_ASSERT_EVAL_PV	\

@@ -132,6 +132,7 @@
 #define PL_endav		(vTHX->Iendav)
 #define PL_envgv		(vTHX->Ienvgv)
 #define PL_errgv		(vTHX->Ierrgv)
+#define PL_errhooks		(vTHX->Ierrhooks)
 #define PL_errors		(vTHX->Ierrors)
 #define PL_euid			(vTHX->Ieuid)
 #define PL_eval_root		(vTHX->Ieval_root)
@@ -462,6 +463,7 @@
 #define PL_Iendav		PL_endav
 #define PL_Ienvgv		PL_envgv
 #define PL_Ierrgv		PL_errgv
+#define PL_Ierrhooks		PL_errhooks
 #define PL_Ierrors		PL_errors
 #define PL_Ieuid		PL_euid
 #define PL_Ieval_root		PL_eval_root
