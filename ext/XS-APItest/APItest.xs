@@ -16,6 +16,7 @@ typedef struct {
     GV *cscgv;
     AV *cscav;
     AV *bhkav;
+    SV *thrown;
     bool bhk_record;
     peep_t orig_peep;
     peep_t orig_rpeep;
@@ -331,6 +332,29 @@ blockhook_test_eval(pTHX_ OP *const o)
 }
 
 STATIC BHK bhk_csc, bhk_test;
+
+STATIC void
+errhk_eval (pTHX_ OP *const o)
+{
+    dMY_CXT;
+
+    /* o is an OP_NULL if this is an eval scope set up for the benefit
+     * of DESTROY. We want to ignore those. */
+    if (o->op_type != OP_NULL) {
+        save_item(MY_CXT.thrown);
+        sv_setsv(MY_CXT.thrown, &PL_sv_no);
+    }
+}
+
+STATIC void
+errhk_die (pTHX_ SV **ex)
+{
+    dMY_CXT;
+
+    sv_setsv(MY_CXT.thrown, &PL_sv_yes);
+}
+
+STATIC EHK ehk_thrown;
 
 STATIC void
 my_peep (pTHX_ OP *o)
@@ -1004,6 +1028,12 @@ BOOT:
     BhkENTRY_set(&bhk_csc, start, blockhook_csc_start);
     BhkENTRY_set(&bhk_csc, pre_end, blockhook_csc_pre_end);
     Perl_blockhook_register(aTHX_ &bhk_csc);
+
+    MY_CXT.thrown = get_sv("XS::APItest::thrown", GV_ADDMULTI);
+
+    EhkENTRY_set(&ehk_thrown, ehk_eval, errhk_eval);
+    EhkENTRY_set(&ehk_thrown, ehk_die, errhk_die);
+    Perl_errhook_register(aTHX_ &ehk_thrown);
 
     MY_CXT.peep_recorder = newAV();
     MY_CXT.rpeep_recorder = newAV();
